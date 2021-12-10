@@ -24,6 +24,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+	margin: 0;
+}
+
 * {
     &::-webkit-scrollbar {
         width: 15px;
