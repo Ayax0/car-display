@@ -5,11 +5,6 @@ export default [
         path: '/',
         name: 'Home',
         component: () => lazyLoadView(import('@views/home.vue'))
-    },
-    {
-        path: '/login',
-        name: 'Login',
-        component: () => lazyLoadView(import('@views/login.vue'))
     }
 ]
 

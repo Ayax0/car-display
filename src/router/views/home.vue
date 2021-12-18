@@ -1,95 +1,96 @@
 <script>
+import { getCredentials } from '../../api/spotify'
+
 export default {
     name: 'Home',
-    computed: {
-        accessToken () {
-            return this.spotify.getAccessToken()
-        }
-    },
     data () {
         return {
+            access_token: undefined,
             device_id: undefined,
             status: undefined,
             image: undefined,
             artists: undefined,
-            song: undefined
+            song: undefined,
+            volume: 30
+        }
+    },
+    watch: {
+        volume () {
+            this.updateVolume()
         }
     },
     methods: {
         test () {
-            this.spotify.get('/me/player/currently-playing')
+            this.spotify.get('/player/currently-playing')
                 .then((res) => console.log(res.data))
         },
+        triggerPlayback () {
+            if (this.status.paused) this.play()
+            else this.pause()
+        },
         play () {
-            this.spotify.put('/me/player/play?device_id=' + this.device_id)
+            this.spotify.put('/player/play?device_id=' + this.device_id)
                 .catch((err) => console.log(err.response))
         },
         pause () {
-            this.spotify.put('/me/player/pause?device_id=' + this.device_id)
+            this.spotify.put('/player/pause?device_id=' + this.device_id)
                 .catch((err) => console.log(err.response))
         },
         previous () {
-            this.spotify.post('/me/player/previous?device_id=' + this.device_id)
+            this.spotify.post('/player/previous?device_id=' + this.device_id)
                 .catch((err) => console.log(err.response))
         },
         next () {
-            this.spotify.post('/me/player/next?device_id=' + this.device_id)
+            this.spotify.post('/player/next?device_id=' + this.device_id)
                 .catch((err) => console.log(err.response))
         },
         update () {
-            this.spotify.get('/me/player/currently-playing')
+            this.spotify.get('/player/currently-playing')
                 .then((res) => {
                     console.log(res.data)
                     this.image = res.data.item.album.images.sort((a, b) => a.width > b.width ? -1 : 1)[0].url
                     this.artists = res.data.item.artists.map(artist => artist.name).join(', ')
                     this.song = res.data.item.name
                 })
+        },
+        updateVolume () {
+            this.spotify.put('/player/volume?volume_percent=' + this.volume + '&device_id=' + this.device_id)
+                .catch((err) => console.log(err.response))
+        },
+        increaseVolume () {
+            this.volume += 5
+            if (this.volume > 100) this.volume = 100
+        },
+        decreaseVolume () {
+            this.volume -= 5
+            if (this.volume < 0) this.volume = 0
         }
     },
+    async created () {
+        const credentials = await getCredentials()
+        this.access_token = credentials.access_token
+    },
     mounted () {
-        const token = new URLSearchParams(window.location.hash.substring(1)).get('access_token')
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new window.Spotify.Player({
+                name: 'Opel Corsa C14',
+                getOAuthToken: cb => cb(this.access_token),
+                volume: this.volume / 100
+            })
 
-        if (!token) this.$router.push('/login')
-        else {
-            window.onSpotifyWebPlaybackSDKReady = () => {
-                const player = new window.Spotify.Player({
-                    name: 'Opel Corsa C14',
-                    getOAuthToken: cb => { cb(token) },
-                    volume: 0.5
-                })
+            player.addListener('ready', (device) => {
+                console.log('Ready with Device ID', device.device_id)
+                this.device_id = device.device_id
+                this.spotify.put('/player', { device_ids: [device.device_id] })
+                    .catch((err) => console.log(err.response))
+            })
 
-                // Ready
-                player.addListener('ready', (device) => {
-                    console.log('Ready with Device ID', device.device_id)
-                    this.device_id = device.device_id
-                    this.spotify.put('/me/player', { device_ids: [device.device_id] })
-                        .then(() => setTimeout(() => this.play(), 2000))
-                })
+            player.addListener('player_state_changed', (data) => {
+                this.status = data
+                this.update()
+            })
 
-                // Not Ready
-                player.addListener('not_ready', (deviceId) => {
-                    console.log('Device ID has gone offline', deviceId)
-                })
-
-                player.addListener('initialization_error', ({ message }) => {
-                    console.error(message)
-                })
-
-                player.addListener('authentication_error', ({ message }) => {
-                    console.error(message)
-                })
-
-                player.addListener('account_error', ({ message }) => {
-                    console.error(message)
-                })
-
-                player.addListener('player_state_changed', (data) => {
-                    this.status = data
-                    this.update()
-                })
-
-                player.connect()
-            }
+            player.connect()
         }
     }
 }
@@ -98,19 +99,19 @@ export default {
 <template>
 	<div class="main">
 		<div class="display">
-			<img :src="image" class="album-cover" v-if="image" />
+			<img :src="image" class="album-cover" v-if="image" @click="triggerPlayback" />
 			<div class="artist">{{ artists }}</div>
 			<div class="song">{{ song }}</div>
 		</div>
 		<div class="control" v-if="status">
-			<Icon icon="mdi:minus" height="2rem" color="white" />
+			<Icon icon="mdi:minus" height="2rem" color="white" @click="decreaseVolume" />
 			<div class="spacer"></div>
 			<Icon icon="mdi:skip-previous" height="3rem" color="white" @click="previous" />
 			<Icon icon="mdi:play-circle" height="3rem" color="white" @click="play" v-if="status.paused" />
 			<Icon icon="mdi:pause-circle" height="3rem" color="white" @click="pause" v-else />
 			<Icon icon="mdi:skip-next" height="3rem" color="white" @click="next" />
 			<div class="spacer"></div>
-			<Icon icon="mdi:plus" height="2rem" color="white" @click="update" />
+			<Icon icon="mdi:plus" height="2rem" color="white" @click="increaseVolume" />
 		</div>
 	</div>
 </template>
@@ -140,7 +141,7 @@ p {
 		.album-cover {
 			width: 40vh;
 			height: 40vh;
-			box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+			box-shadow: $shadow;
 			margin: 1rem;
 		}
 
@@ -162,7 +163,7 @@ p {
 		height: 6rem;
 		display: flex;
 		background: rgb(42, 42, 42);
-		box-shadow: -3px -3px 10px 10px #161616;
+		box-shadow: $shadow;
 		justify-content: center;
 		align-items: center;
 

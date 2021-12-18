@@ -21,7 +21,7 @@ export const getCredentials = oauth.client(axios.create(), {
     scope: scope.join(' ')
 })
 
-const instance = axios.create({ baseURL: 'https://api.spotify.com/v1' })
+const instance = axios.create({ baseURL: 'https://api.spotify.com/v1/me' })
 instance.interceptors.request.use(oauth.interceptor(tokenProvider, getCredentials))
 
 export default instance
