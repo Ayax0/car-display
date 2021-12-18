@@ -6,11 +6,13 @@ export default {
         const redirectUri = 'http://localhost:8080/'
 
         const scope = [
+            'user-read-playback-state',
             'user-modify-playback-state',
+            'user-read-currently-playing',
             'streaming',
-            'user-read-playback-position',
             'app-remote-control',
-            'user-read-currently-playing'
+            'user-read-playback-position',
+            'user-top-read'
         ]
 
         var url = 'https://accounts.spotify.com/authorize'
