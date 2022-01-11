@@ -1,28 +1,33 @@
-import { defineAsyncComponent } from 'vue'
+// import { defineAsyncComponent } from "vue";
 
 export default [
-    {
-        path: '/',
-        name: 'Home',
-        component: () => lazyLoadView(import('@views/home.vue'))
-    }
-]
+	{
+		path: "/",
+		name: "Home",
+		component: () => import("@views/home.vue"),
+	},
+	{
+		path: "/search",
+		name: "Search",
+		component: () => import("@views/search.vue"),
+	},
+];
 
-function lazyLoadView (AsyncView) {
-    return Promise.resolve(
-        defineAsyncComponent({
-            loader: () => AsyncView,
-            // A component to use while the component is loading.
-            loading: require('@views/_loading.vue').default,
-            // Delay before showing the loading component.
-            // Default: 200 (milliseconds).
-            delay: 200,
-            // A fallback component in case the timeout is exceeded
-            // when loading the component.
-            error: require('@views/_timeout.vue').default,
-            // Time before giving up trying to load the component.
-            // Default: Infinity (milliseconds).
-            timeout: 10000
-        })
-    )
-}
+// function lazyLoadView(AsyncView) {
+// 	return Promise.resolve(
+// 		defineAsyncComponent({
+// 			loader: () => AsyncView,
+// 			// A component to use while the component is loading.
+// 			loading: require("@views/_loading.vue").default,
+// 			// Delay before showing the loading component.
+// 			// Default: 200 (milliseconds).
+// 			delay: 200,
+// 			// A fallback component in case the timeout is exceeded
+// 			// when loading the component.
+// 			error: require("@views/_timeout.vue").default,
+// 			// Time before giving up trying to load the component.
+// 			// Default: Infinity (milliseconds).
+// 			timeout: 10000,
+// 		})
+// 	);
+// }

@@ -1,13 +1,13 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import { Icon } from '@iconify/vue'
-import spotifyApi from './api/spotify'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import { Icon } from "@iconify/vue";
+import spotifyApi from "./api/spotify";
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.component('Icon', Icon)
-app.config.globalProperties.spotify = spotifyApi
+app.component("Icon", Icon);
+app.config.globalProperties.spotify = spotifyApi;
 
-app.use(router)
-app.mount('#app')
+app.use(router);
+app.mount("#app");

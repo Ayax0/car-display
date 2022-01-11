@@ -1,27 +1,32 @@
 <script>
 export default {
-    watch: {
-        $route: {
-            immediate: true,
-            handler (to) {
-                document.title = `Lorem - ${to.name}`
-            }
-        }
-    }
-}
+	watch: {
+		$route: {
+			immediate: true,
+			handler(to) {
+				document.title = `Lorem - ${to.name}`;
+			},
+		},
+	},
+};
 </script>
 
 <template>
 	<div id="app">
-		<router-view/>
+		<router-view />
 	</div>
 </template>
 
 <style lang="scss">
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	font-family: "CircularStd", Helvetica, Arial, sans-serif;
+	// font-family: "CircularStd";
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	height: 100vh;
+	width: 100vw;
+	background: rgb(22, 22, 22);
+	background: linear-gradient(0deg, rgba(22, 22, 22, 1) 0%, rgba(48, 48, 48, 1) 100%);
 }
 
 body {
@@ -29,21 +34,21 @@ body {
 }
 
 * {
-    &::-webkit-scrollbar {
-        width: 15px;
-    }
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: rgb(40, 40, 40);
-        background-clip: padding-box;
-        border: 5px solid transparent;
-        &:hover {
-            background: rgb(50, 50, 50);
-            background-clip: padding-box;
-            border: 5px solid transparent;
-        }
-    }
+	&::-webkit-scrollbar {
+		width: 15px;
+	}
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: rgb(40, 40, 40);
+		background-clip: padding-box;
+		border: 5px solid transparent;
+		&:hover {
+			background: rgb(50, 50, 50);
+			background-clip: padding-box;
+			border: 5px solid transparent;
+		}
+	}
 }
 </style>
