@@ -1,13 +1,15 @@
 {
-    "compilerOptions": {
-        "baseUrl": "./",
-        "paths": {
-            "@src/*": ["src"],
-            "@router/*": ["src/router"],
-            "@layouts/*": ["src/router/layouts"],
-            "@views/*": ["src/router/views"],
-            "@components/*": ["src/components"],
-            "@assets/*": ["src/assets"]
-        }
-    }
+	"compilerOptions": {
+		"baseUrl": "./",
+		"paths": {
+			"@src/*": ["src"],
+			"@router/*": ["src/router"],
+			"@layouts/*": ["src/router/layouts"],
+			"@views/*": ["src/router/views"],
+			"@components/*": ["src/components"],
+			"@assets/*": ["src/assets"],
+			"@mixins/*": ["src/mixins"],
+			"@stores/*": ["src/stores"]
+		}
+	}
 }

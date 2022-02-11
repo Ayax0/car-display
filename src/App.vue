@@ -1,4 +1,6 @@
 <script>
+import { mapActions } from "vuex";
+
 export default {
 	watch: {
 		$route: {
@@ -7,6 +9,12 @@ export default {
 				document.title = `Lorem - ${to.name}`;
 			},
 		},
+	},
+	created() {
+		this.init();
+	},
+	methods: {
+		...mapActions(["init"]),
 	},
 };
 </script>
@@ -44,6 +52,7 @@ body {
 		background: rgb(40, 40, 40);
 		background-clip: padding-box;
 		border: 5px solid transparent;
+		border-radius: 8px;
 		&:hover {
 			background: rgb(50, 50, 50);
 			background-clip: padding-box;

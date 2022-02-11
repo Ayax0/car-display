@@ -1,5 +1,4 @@
 <script>
-import { getCredentials } from "../../api/spotify";
 import VueSlider from "vue-slider-component";
 import SwipeComponent from "@components/swipe.component";
 import Button from "@components/button.component";
@@ -15,7 +14,6 @@ export default {
 	mixins: [ColorMixin],
 	data() {
 		return {
-			access_token: undefined,
 			device_id: undefined,
 			status: undefined,
 			image: undefined,
@@ -51,10 +49,6 @@ export default {
 				this.volume_dialog_timeout = setTimeout(() => this.closeVolumeDialog(), 5000);
 			}
 		},
-	},
-	async created() {
-		const credentials = await getCredentials();
-		this.access_token = credentials.access_token;
 	},
 	mounted() {
 		window.onSpotifyWebPlaybackSDKReady = () => {

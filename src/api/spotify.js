@@ -1,30 +1,36 @@
 const axios = require("axios");
-const oauth = require("axios-oauth-client");
-const tokenProvider = require("axios-token-interceptor");
 
-const scope = [
-	"user-read-playback-state",
-	"user-modify-playback-state",
-	"user-read-currently-playing",
-	"streaming",
-	"app-remote-control",
-	"user-read-playback-position",
-	"user-top-read",
-];
+export function getCredentials(refresh_token) {
+	const auth_string = Buffer.from(process.env.VUE_APP_CLIENT_ID + ":" + process.env.VUE_APP_CLIENT_SECRET).toString("base64");
+	const data = new URLSearchParams();
 
-export const getCredentials = oauth.client(axios.create(), {
-	url: "https://accounts.spotify.com/api/token",
-	grant_type: "refresh_token",
-	client_id: "7d3a99474aa94be9b78b1040f712a7a5",
-	client_secret: "487f1e587730445798647d5d10f6fec8",
-	refresh_token:
-		"AQBhZqYRNeEtX-Xnbbo7KElp6KmUfJaaOOdbtPC_XDlv92DjvglCTzN8SU4XCWsVSvG_mlrvea06xjmfJwtLyEyKQ1ZXeZ6iJ-SpqC1av7Oedf7lp7yGi-N0Mzog5mrol5Q",
-	scope: scope.join(" "),
-});
+	data.append("grant_type", "refresh_token");
+	data.append("refresh_token", refresh_token);
 
-const instance = axios.create({ baseURL: "https://api.spotify.com/v1/me" });
-instance.interceptors.request.use(
-	oauth.interceptor(tokenProvider, getCredentials)
-);
+	return axios.post("https://accounts.spotify.com/api/token", data, {
+		headers: { "Content-Type": "application/x-www-form-urlencoded", Authorization: `Basic ${auth_string}` },
+	});
+}
 
-export default instance;
+export default (refresh_token) => {
+	return new Promise((resolve, reject) => {
+		const instance = axios.create({ baseURL: "https://api.spotify.com/v1/me" });
+
+		//TODO: Interceptor
+		instance.interceptors.request.use((config) => {
+			config.headers.Authorization = `Bearer ${instance.access_token}`;
+			return config;
+		});
+
+		getCredentials(refresh_token)
+			.then((res) => {
+				instance.refresh_token = refresh_token;
+				instance.access_token = res.data.access_token;
+				instance.scope = res.data.scope;
+				return resolve(instance);
+			})
+			.catch((err) => {
+				return reject(err.response);
+			});
+	});
+};
