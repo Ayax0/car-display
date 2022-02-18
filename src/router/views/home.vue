@@ -1,4 +1,6 @@
 <script>
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex"
+
 import VueSlider from "vue-slider-component";
 import SwipeComponent from "@components/swipe.component";
 import Button from "@components/button.component";
@@ -14,22 +16,16 @@ export default {
 	mixins: [ColorMixin],
 	data() {
 		return {
-			device_id: undefined,
-			status: undefined,
-			image: undefined,
-			artists: undefined,
-			song: undefined,
-			volume: 20,
-			gain_node: undefined,
+			volume: 10,
 			volume_dialog: false,
 			volume_dialog_timeout: undefined,
 			last_volume_change: -1,
 			progress: 0,
-			primary: `rgb(22,22,22)`,
-			secondary: `rgb(10,10,10)`,
 		};
 	},
 	computed: {
+		...mapState({ account: "account", primary: "primary", secondary: "secondary", status: "status", current: "current_playing" }),
+		...mapGetters({ image: "image", artists: "artists" }),
 		cssBridge() {
 			return {
 				"--color-primary": this.primary,
@@ -51,26 +47,7 @@ export default {
 		},
 	},
 	mounted() {
-		window.onSpotifyWebPlaybackSDKReady = () => {
-			const player = new window.Spotify.Player({
-				name: "Opel Corsa C14",
-				getOAuthToken: (cb) => cb(this.access_token),
-				volume: this.volume / 100,
-			});
-
-			player.addListener("ready", (device) => {
-				console.log("Ready with Device ID", device.device_id);
-				this.device_id = device.device_id;
-				this.spotify.put("/player", { device_ids: [device.device_id] }).catch((err) => console.log(err.response));
-			});
-
-			player.addListener("player_state_changed", (data) => {
-				this.status = data;
-				this.update();
-			});
-
-			player.connect();
-		};
+		if(!this.account) return this.$router.push("/login");
 
 		setInterval(() => {
 			if (this.status && !this.status.paused) {
@@ -80,49 +57,36 @@ export default {
 		}, 10);
 	},
 	methods: {
+		...mapMutations({
+			setCurrentPlaying: "setCurrentPlaying"
+		}),
+		...mapActions({
+			setStatus: "setStatus"
+		}),
 		triggerPlayback() {
 			if (this.status.paused) this.play();
 			else this.pause();
 		},
 		play() {
-			this.spotify.put("/player/play?device_id=" + this.device_id).catch((err) => console.log(err.response));
+			this.account.api.put("/me/player/play").catch((err) => console.log(err.response));
 		},
 		pause() {
-			this.spotify.put("/player/pause?device_id=" + this.device_id).catch((err) => console.log(err.response));
+			this.account.api.put("/me/player/pause").catch((err) => console.log(err.response));
 		},
 		previous() {
-			this.spotify.post("/player/previous?device_id=" + this.device_id).catch((err) => console.log(err.response));
+			this.account.api.post("/me/player/previous").catch((err) => console.log(err.response));
 		},
 		next() {
-			this.spotify.post("/player/next?device_id=" + this.device_id).catch((err) => console.log(err.response));
+			this.account.api.post("/me/player/next").catch((err) => console.log(err.response));
 		},
 		jumpTo(ms) {
-			this.spotify.put("/player/seek?position_ms=" + ms + "&device_id=" + this.device_id).catch((err) => console.log(err.response));
-		},
-		update() {
-			this.spotify.get("/player/currently-playing").then((res) => {
-				if (res.data.current_playing_type == "episode") {
-					this.image = "https://placekitten.com/650/650";
-					this.artists = "podcast feature currentli not available";
-					this.song = "error";
-				} else {
-					if (this.song != res.data.item.name) {
-						this.image = res.data.item.album.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0].url;
-						this.artists = res.data.item.artists.map((artist) => artist.name).join(", ");
-						this.song = res.data.item.name;
-						this.getImageColor2(res.data.item.album.images.sort((a, b) => (a.width < b.width ? -1 : 1))[0]).then((res) => {
-							this.primary = `rgb(${res[0].r},${res[0].g},${res[0].b})`;
-							this.secondary = `rgb(${res[1].r},${res[1].g},${res[1].b})`;
-						});
-					}
-				}
-			});
+			this.account.api.put("/me/player/seek?position_ms=" + ms).catch((err) => console.log(err.response));
 		},
 		updateVolume() {
 			if (Date.now() - this.last_volume_change > 1000) {
 				this.last_volume_change = Date.now();
-				this.spotify
-					.put("/player/volume?volume_percent=" + this.volume + "&device_id=" + this.device_id)
+				this.account.api
+					.put("/me/player/volume?volume_percent=" + this.volume)
 					.catch((err) => console.log(err.response));
 			} else setTimeout(() => this.updateVolume(), 1020);
 		},
@@ -171,39 +135,47 @@ export default {
 	<div :style="cssBridge" class="main-wrapper">
 		<div class="main">
 			<div class="cover">
-				<img v-if="image" :src="image" class="album-cover" />
+				<img v-if="image" :src="image.url" class="album-cover" />
 			</div>
 			<div class="info">
-				<div class="song">
-					{{ song }}
-				</div>
-				<div class="artist">
-					{{ artists }}
-				</div>
+				<template v-if="current">
+					<div class="song">
+						{{ current.name }}
+					</div>
+					<div class="artist">
+						{{ artists }}
+					</div>
+				</template>
 			</div>
 			<div class="timeline" @click="triggerTimeline">
 				<div class="progress" :style="`width: calc(100% * ${progress})`" />
 			</div>
 			<div class="action-wrapper">
-				<div v-if="status" class="action">
-					<template v-if="volume_dialog">
-						<Button icon="mdi:volume" @click="volume_dialog = false" />
-						<Button icon="mdi:minus" @click="decreaseVolume" />
-						<VueSlider v-model="volume" tooltip="none" class="slider" />
-						<Button icon="mdi:plus" @click="increaseVolume" />
+				<div class="action">
+					<template v-if="status">
+						<template v-if="volume_dialog">
+							<Button icon="mdi:volume" @click="volume_dialog = false" />
+							<Button icon="mdi:minus" @click="decreaseVolume" />
+							<VueSlider v-model="volume" tooltip="none" class="slider" />
+							<Button icon="mdi:plus" @click="increaseVolume" />
+						</template>
+						<template v-else>
+							<Button icon="mdi:volume" @click="volume_dialog = true" />
+							<div class="spacer" />
+							<Button icon="mdi:skip-previous" @click="previous" />
+							<Button v-if="status.paused" icon="mdi:play" @click="play" />
+							<Button v-else icon="mdi:pause" @click="pause" />
+							<Button icon="mdi:skip-next" @click="next" />
+							<div class="spacer" />
+							<router-link v-slot="{ navigate }" to="/search" custom>
+								<Button icon="mdi:search" @click="navigate" />
+							</router-link>
+						</template>
 					</template>
 					<template v-else>
-						<Button icon="mdi:volume" @click="volume_dialog = true" />
 						<div class="spacer" />
-						<Button icon="mdi:skip-previous" @click="previous" />
-						<Button v-if="status.paused" icon="mdi:play" @click="play" />
-						<Button v-else icon="mdi:pause" @click="pause" />
-						<Button icon="mdi:skip-next" @click="next" />
+						<Button icon="mdi:refresh" @click="$router.go()" />
 						<div class="spacer" />
-						<!-- <router-link v-slot="{ navigate }" to="/search" custom>
-						<Icon icon="mdi:search" height="2.5rem" color="white" @click="navigate" />
-						</router-link> -->
-						<Button icon="mdi:search" @click="$router.go()" />
 					</template>
 				</div>
 			</div>

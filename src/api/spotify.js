@@ -14,7 +14,7 @@ export function getCredentials(refresh_token) {
 
 export default (refresh_token) => {
 	return new Promise((resolve, reject) => {
-		const instance = axios.create({ baseURL: "https://api.spotify.com/v1/me" });
+		const instance = axios.create({ baseURL: "https://api.spotify.com/v1" });
 
 		//TODO: Interceptor
 		instance.interceptors.request.use((config) => {
