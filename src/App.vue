@@ -41,6 +41,10 @@ body {
 	margin: 0;
 }
 
+html, body {
+  overscroll-behavior-x: none;
+}
+
 * {
 	&::-webkit-scrollbar {
 		width: 15px;
