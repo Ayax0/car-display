@@ -4,6 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import { Icon } from "@iconify/vue";
 import spotifyApi from "./api/spotify";
+import Keyboard from "vue-touch-keyboard";
 
 const app = createApp(App);
 
@@ -14,4 +15,5 @@ app.config.globalProperties.spotify = spotifyApi(
 
 app.use(router);
 app.use(store);
+app.use(Keyboard);
 app.mount("#app");

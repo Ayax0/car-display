@@ -16,6 +16,11 @@ export default [
 		name: "Login",
 		component: () => import("@views/login.vue"),
 	},
+	{
+		path: "/show/:id",
+		name: "Show",
+		component: () => import("@views/show.vue"),
+	},
 ];
 
 // function lazyLoadView(AsyncView) {

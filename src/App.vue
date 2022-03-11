@@ -64,4 +64,8 @@ html, body {
 		}
 	}
 }
+
+.spacer {
+	flex: 1;
+}
 </style>
