@@ -123,8 +123,8 @@ export default {
 		},
 		swipe(event) {
 			if (this.volume_dialog) {
-				if (event.xPLast > 0) this.volume = this.volume + event.xPLast > 100 ? 100 : (this.volume += 1);
-				if (event.xPLast < 0) this.volume = this.volume + event.xPLast < 0 ? 0 : (this.volume -= 1);
+				if (event.xPLast > 0) this.volume = this.volume + 2 > 100 ? 100 : (this.volume += 2);
+				if (event.xPLast < 0) this.volume = this.volume - 2 < 0 ? 0 : (this.volume -= 2);
 			}
 		},
 	},
@@ -132,65 +132,118 @@ export default {
 </script>
 
 <template>
-	<div :style="cssBridge" class="main-wrapper">
-		<div class="main">
-			<div class="cover">
-				<img v-if="image" :src="image.url" class="album-cover" />
-			</div>
-			<div class="info">
-				<template v-if="current">
-					<div class="song">
-						{{ current.name }}
-					</div>
-					<div class="artist">
-						{{ artists }}
-					</div>
-				</template>
-			</div>
-			<div class="timeline" @click="triggerTimeline">
-				<div class="progress" :style="`width: calc(100% * ${progress})`" />
-			</div>
-			<div class="action-wrapper">
-				<div class="action">
-					<template v-if="status">
-						<template v-if="volume_dialog">
-							<Button icon="mdi:volume" @click="volume_dialog = false" />
-							<Button icon="mdi:minus" @click="decreaseVolume" />
-							<VueSlider v-model="volume" tooltip="none" class="slider" />
-							<Button icon="mdi:plus" @click="increaseVolume" />
-						</template>
-						<template v-else>
-							<Button icon="mdi:volume" @click="volume_dialog = true" />
-							<div class="spacer" />
-							<Button icon="mdi:skip-previous" @click="previous" />
-							<Button v-if="status.paused" icon="mdi:play" @click="play" />
-							<Button v-else icon="mdi:pause" @click="pause" />
-							<Button icon="mdi:skip-next" @click="next" />
-							<div class="spacer" />
-							<router-link v-slot="{ navigate }" to="/search" custom>
-								<Button icon="mdi:search" @click="navigate" />
-							</router-link>
-						</template>
-					</template>
-					<template v-else>
-						<div class="spacer" />
-						<Button icon="mdi:refresh" @click="$router.go()" />
-						<div class="spacer" />
-					</template>
-				</div>
-			</div>
-			<div class="volume" />
-		</div>
-		<SwipeComponent
-			class="swipe-component"
-			@tab="tab"
-			@swipeLeft="swipeLeft"
-			@swipeRight="swipeRight"
-			@swipeUp="swipeUp"
-			@swipeDown="swipeDown"
-			@swipe="swipe"
-		/>
-	</div>
+  <div
+    :style="cssBridge"
+    class="main-wrapper"
+  >
+    <div class="main">
+      <div class="cover">
+        <img
+          v-if="image"
+          :src="image.url"
+          class="album-cover"
+        >
+      </div>
+      <div class="info">
+        <template v-if="current">
+          <div class="song">
+            {{ current.name }}
+          </div>
+          <div class="artist">
+            {{ artists }}
+          </div>
+        </template>
+      </div>
+      <div
+        class="timeline"
+        @click="triggerTimeline"
+      >
+        <div
+          class="progress"
+          :style="`width: calc(100% * ${progress})`"
+        />
+      </div>
+      <div class="action-wrapper">
+        <div class="action">
+          <template v-if="status">
+            <template v-if="volume_dialog">
+              <Button
+                icon="mdi:volume"
+                @click="volume_dialog = false"
+              />
+              <Button
+                icon="mdi:minus"
+                @click="decreaseVolume"
+              />
+              <VueSlider
+                v-model="volume"
+                tooltip="none"
+                class="slider"
+              />
+              <Button
+                icon="mdi:plus"
+                @click="increaseVolume"
+              />
+            </template>
+            <template v-else>
+              <Button
+                icon="mdi:volume"
+                @click="volume_dialog = true"
+              />
+              <div class="spacer" />
+              <Button
+                icon="mdi:skip-previous"
+                @click="previous"
+              />
+              <Button
+                v-if="status.paused"
+                icon="mdi:play"
+                @click="play"
+              />
+              <Button
+                v-else
+                icon="mdi:pause"
+                @click="pause"
+              />
+              <Button
+                icon="mdi:skip-next"
+                @click="next"
+              />
+              <div class="spacer" />
+              <router-link
+                v-slot="{ navigate }"
+                to="/search"
+                custom
+              >
+                <Button
+                  icon="mdi:search"
+                  @click="navigate"
+                />
+              </router-link>
+            </template>
+          </template>
+          <template v-else>
+            <div class="spacer" />
+            <Button
+              icon="mdi:refresh"
+              @click="$router.go()"
+            />
+            <div class="spacer" />
+          </template>
+        </div>
+      </div>
+      <div class="volume" />
+    </div>
+    <SwipeComponent
+      class="swipe-component"
+      @tab="tab"
+      @swipeLeft="swipeLeft"
+      @swipeRight="swipeRight"
+      @swipeUp="swipeUp"
+      @swipeDown="swipeDown"
+      @swipe="swipe"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -203,6 +256,7 @@ export default {
 		background: linear-gradient(-45deg, rgba(20, 20, 20, 0.15) 30%, rgba(20, 20, 20, 0.5) 100%);
 		max-width: 100vw;
 		max-height: 100vh;
+		overflow: hidden;
 		display: grid;
 		grid-template-areas:
 			"cover  info"

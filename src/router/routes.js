@@ -21,6 +21,11 @@ export default [
 		name: "Show",
 		component: () => import("@views/show.vue"),
 	},
+	{
+		path: "/playlist/:id",
+		name: "Playlist",
+		component: () => import("@views/playlist.vue"),
+	},
 ];
 
 // function lazyLoadView(AsyncView) {

@@ -16,7 +16,7 @@
 		"vue": "^3.2.27",
 		"vue-router": "^4.0.0-0",
 		"vue-slider-component": "^4.0.0-beta.5",
-		"vue-touch-keyboard": "^0.3.2",
+		"vue3-whr-ripple-directive": "^1.0.0",
 		"vuex": "^4.0.2"
 	},
 	"devDependencies": {

@@ -11,6 +11,8 @@ export default createStore({
 			status: undefined,
 			primary: "rgb(22,22,22)",
 			secondary: "rgb(10,10,10)",
+			search_items: undefined,
+			search_query: undefined,
 		};
 	},
 	getters: {
@@ -44,6 +46,12 @@ export default createStore({
 		},
 		setSecondary(state, color) {
 			state.secondary = color;
+		},
+		setSearchItems(state, items) {
+			state.search_items = items;
+		},
+		setSearchQuery(state, query) {
+			state.search_query = query;
 		}
 	},
 	actions: {
@@ -98,6 +106,12 @@ export default createStore({
 
 			commit("setCurrentPlaying", current_playing);
 			commit("setStatus", status);
+		},
+		search({ commit, state }) {
+			if (!state.search_query) commit("setSearchItems", undefined);
+			else state.account.api.get("/search?q=" + encodeURI(state.search_query) + "&type=artist,playlist,track,show")
+				.then((res) => commit("setSearchItems", res.data))
+				.catch((err) => console.error(err.response));
 		}
 	},
 });

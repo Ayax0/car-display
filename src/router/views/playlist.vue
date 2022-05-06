@@ -4,72 +4,67 @@ import { mapState } from "vuex";
 import { getImageColor } from "@src/utils/colorUtils.js";
 
 export default {
-	name: "Show",
+	name: "Playlist",
 	data() {
 		return {
-      show: undefined,
-			episodes: undefined,
+      playlist: undefined,
+			tracks: undefined,
       color: undefined,
       max: 0,
 		}
 	},
 	computed: {
 		...mapState({ account: "account" }),
-        showId() {
-            return this.$route.params.id;
-        },
-        cssBridge() {
+    playlistId() {
+        return this.$route.params.id;
+    },
+    cssBridge() {
 			return {
 				"--color-primary": this.color,
 			};
 		},
-        image() {
-            return this.show.images[0];
-        }
-	},
-	watch: {
-		episodes(val) {
-			console.log(val)
-		}
+    image() {
+      return this.playlist.images[0];
+    }
 	},
 	mounted() {
 		if(!this.account) return this.$router.push("/login");
 
-        this.account.api.get("/shows/" + this.showId)
-		.then((res) => {
-            this.show = res.data;
-            this.show.images.sort((a, b) => (a.width > b.width ? -1 : 1));
-            this.max = this.show.total_episodes;
-            getImageColor(this.image)
+    this.account.api.get("/playlists/" + this.playlistId)
+      .then((res) => {
+          this.playlist = res.data;
+          this.max = this.playlist.tracks.total;
+          this.playlist.images.sort((a, b) => (a.width > b.width ? -1 : 1));
+          getImageColor(this.image)
             .then((res) => this.color = `rgb(${res[0].r},${res[0].g},${res[0].b})`);
-        })
-		.catch((err) => console.log(err))
+      })
+      .catch((err) => console.log(err))
 
-		this.account.api.get("/shows/" + this.showId + "/episodes?limit=20&offset=0")
-		.then((res) => {
-            this.episodes = res.data.items;
-        })
-		.catch((err) => console.log(err))
+      this.account.api.get("/playlists/" + this.playlistId + "/tracks?limit=20&offset=0")
+      .then((res) => {
+        this.tracks = res.data.items;
+      })
+      .catch((err) => console.log(err))
 	},
     methods: {
-        play(episode) {
-            console.log(episode)
-            this.account.api.put("/me/player/play", {
-				context_uri: this.show.uri,
-                offset: {
-                    uri: episode.uri
-                }
-			})
-			.then(() => this.$router.push("/"))
-			.catch((err) => console.log(err.response));
-        },
-        loadMore() {
-            this.account.api.get("/shows/" + this.showId + "/episodes?limit=20&offset=" + this.episodes.length)
-            .then((res) => {
-                this.episodes = this.episodes.concat(res.data.items);
-            })
-            .catch((err) => console.log(err))
-        }
+      play(track) {
+        console.log(track)
+        this.account.api.put("/me/player/play", {
+				  context_uri: this.playlist.uri,
+          offset: {
+              uri: track.uri
+          }
+			  })
+        .then(() => this.$router.push("/"))
+        .catch((err) => console.log(err.response));
+      },
+      loadMore() {
+        this.account.api.get("/playlists/" + this.playlistId + "/tracks?limit=20&offset=" + this.tracks.length)
+        .then((res) => {
+            this.tracks = this.tracks.concat(res.data.items);
+        })
+        .catch((err) => console.log(err))
+      }
     }
 };
 </script>
@@ -79,7 +74,7 @@ export default {
     class="main"
     :style="cssBridge"
   >
-    <template v-if="show">
+    <template v-if="playlist">
       <div class="header">
         <div
           class="back-button"
@@ -93,47 +88,40 @@ export default {
         </div>
         <img :src="image.url">
         <div class="info">
-          <div class="show-type">
-            Podcast
+          <div class="playlist-type">
+            Playlist
           </div>
-          <div class="show-title">
-            {{ show.name }}
+          <div class="playlist-title">
+            {{ playlist.name }}
           </div>
-          <div class="show-publisher">
-            {{ show.publisher }}
+          <div class="playlist-publisher">
+            {{ playlist.owner.display_name }}
           </div>
         </div>
       </div>
       <div class="content">
         <div class="section-title">
-          Informationen
+          Alle Songs
         </div>
-        <div
-          class="description-content"
-          v-html="show.html_description"
-        />
-        <div class="section-title">
-          Alle Folgen
-        </div>
-        <template v-if="episodes">
+        <template v-if="tracks">
           <div
-            v-for="episode in episodes"
-            :key="episode.id"
-            class="episode"
-            @click="play(episode)"
+            v-for="track in tracks"
+            :key="track.track.id"
+            class="track"
+            @click="play(track.track)"
           >
-            <img :src="episode.images[0].url">
-            <div class="episode-info">
-              <div class="episode-title">
-                {{ episode.name }}
+            <img :src="track.track.album.images[0].url">
+            <div class="track-info">
+              <div class="track-title">
+                {{ track.track.name }}
               </div>
-              <div class="episode-description">
-                {{ episode.description }}
+              <div class="track-artists">
+                {{ track.track.artists.map((artist) => artist.name).join(", ") }}
               </div>
             </div>
           </div>
           <div
-            v-if="episodes.length < max"
+            v-if="tracks.length < max"
             class="load-more"
             @click="loadMore"
           >
@@ -196,13 +184,13 @@ export default {
             justify-content: flex-end;
             gap: 0.3rem;
 
-            .show-type {
+            .playlist-type {
                 font-weight: bold;
                 font-size: 12px;
                 text-transform: uppercase;
             }
 
-            .show-title {
+            .playlist-title {
                 font-weight: 900;
                 font-size: 40px;
             }
@@ -222,14 +210,7 @@ export default {
             margin-bottom: 1rem;
         }
 
-        .description-content {
-            color: rgba(255,255,255,0.5);
-            font-weight: lighter;
-            margin-top: -1rem;
-            margin-bottom: 1rem;
-        }
-
-        .episode {
+        .track {
             height: 7rem;
             border-top: 2px solid rgba(255,255,255,0.1);
             padding: 1rem 0;
@@ -245,23 +226,27 @@ export default {
                 border-radius: 10px;
             }
 
-            .episode-info {
+            .track-info {
                 grid-area: info;
-                height: 7rem;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
 
-                .episode-title {
+                .track-title {
+                    width: 100%;
                     font-weight: bold;
-                    padding: 0.8rem 0;
+                    font-size: 24px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
 
-                .episode-description {
+                .track-artists {
                     overflow: hidden;
                     font-size: 14px;
                     color: rgba(255,255,255,0.5);
                     font-weight: lighter;
-                    height: 38px;
                 }
             }
         }

@@ -1,25 +1,32 @@
 <script>
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
+
+import Keyboard from "@components/keyboard.component.vue";
+import Item from "@components/item.component.vue";
 
 export default {
-	name: "Search",
+	name: "SearchView",
+	components: {
+		Keyboard,
+		Item
+	},
 	data() {
 		return {
 			playlists: [],
 			shows: [],
-			keyboard: {
-				visible: false,
-				layout: "normal",
-				input: null,
-				options: {
-					useKbEvents: false,
-					preventClickEvent: false
-				}
-			},
+			keyboard: false,
 		}
 	},
 	computed: {
-		...mapState({ account: "account" })
+		...mapState({ account: "account", items: "search_items" }),
+		search: {
+			get() {
+				return this.$store.state.search_query;
+			},
+			set(value) {
+				return this.$store.commit("setSearchQuery", value);
+			}
+		}
 	},
 	mounted() {
 		if(!this.account) return this.$router.push("/login");
@@ -32,80 +39,151 @@ export default {
 		.then((res) => (this.shows = res.data))
 		.catch((err) => console.log(err.response))
 	},
-	// watch: {
-	// 	playlists(val) {
-	// 		console.log(val)
-	// 	}
-	// },
 	methods: {
-		test() {
-			console.log("test")
-		},
-		getImage(item) {
-			console.log(item)
-			return item.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0];
-		},
+		...mapActions({
+			query: "search"
+		}),
 		play(item) {
-			console.log(item.uri)
 			this.account.api.put("/me/player/play", {
 				context_uri: item.uri,
 			})
 			.then(() => this.$router.push("/"))
 			.catch((err) => console.log(err.response));
 		},
-		accept(text) {
-          alert("Input text: " + text);
-          this.hide();
-        },
-
-        show(e) {
-          this.keyboard.input = e.target;
-          this.keyboard.layout = e.target.dataset.layout;
-
-          if (!this.keyboard.visible)
-            this.keyboard.visible = true
-        },
-
-        hide() {
-          this.keyboard.visible = false;
-        },
+		playTrack(item) {
+			this.account.api.put("/me/player/play", {
+				uris: [item.uri],
+			})
+			.then(() => this.$router.push("/"))
+			.catch((err) => console.log(err.response));
+		},
 	}
 };
 </script>
 
 <template>
-	<div class="main">
-		<div class="sidebar">
-			<div class="nav-item" @click="$router.push('/')">
-				<Icon icon="mdi:home" height="2.5rem" color="white" />
-			</div>
-			<div class="spacer" />
-			<div class="nav-item" @click="$router.go()">
-				<Icon icon="mdi:refresh" height="2.5rem" color="white" />
-			</div>
-		</div>
-		<div class="content">
-			<div class="search">
-				<div class="spacer"></div>
-				<input type="text" placeholder="Suchen..." @focus="show">
-			</div>
-			<div class="title">Playlists</div>
-			<div class="gallery">
-				<div class="group" v-for="playlist in playlists.items" :key="playlist.id" @click="play(playlist)">
-					<div class="item" :style="{ 'background-image': `url('${getImage(playlist).url}')` }" />
-					<div class="name">{{playlist.name}}</div>
-				</div>
-			</div>
-			<div class="title">Shows</div>
-			<div class="gallery">
-				<div class="group" v-for="show in shows.items" :key="show.show.id" @click="$router.push('/show/' + show.show.id)">
-					<div class="item" :style="{ 'background-image': `url('${getImage(show.show).url}')` }" />
-					<div class="name">{{show.show.name}}</div>
-				</div>
-			</div>
-		</div>
-		<!-- <vue-touch-keyboard v-if="keyboard.visible" :options="keyboard.options" :layout="keyboard.layout" :cancel="hide" :accept="accept" :input="keyboard.input" /> -->
-	</div>
+  <div class="main">
+    <div class="sidebar">
+      <div
+        class="nav-item"
+        @click="$router.push('/')"
+      >
+        <Icon
+          icon="mdi:home"
+          height="2.5rem"
+          color="white"
+        />
+      </div>
+      <div class="spacer" />
+      <div
+        class="nav-item"
+        @click="$router.go()"
+      >
+        <Icon
+          icon="mdi:refresh"
+          height="2.5rem"
+          color="white"
+        />
+      </div>
+    </div>
+    <div class="content">
+      <div class="search">
+        <div class="spacer" />
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Suchen..."
+          @focus="keyboard = true"
+        >
+      </div>
+      <template v-if="items">
+        <template v-if="items.artists && items.artists.items.length > 0">
+          <div class="title">
+            Künstler:
+          </div>
+          <div class="gallery">
+            <Item
+              v-for="item in items.artists.items"
+              :key="item.id"
+              :value="item"
+              rounded
+              @click="play(item)"
+            />
+          </div>
+        </template>
+        <template v-if="items.tracks && items.tracks.items.length > 0">
+          <div class="title">
+            Songs:
+          </div>
+          <div class="gallery">
+            <Item
+              v-for="item in items.tracks.items"
+              :key="item.id"
+              :value="item"
+              @click="playTrack(item)"
+            />
+          </div>
+        </template>
+        <template v-if="items.playlists && items.playlists.items.length > 0">
+          <div class="title">
+            Playlists:
+          </div>
+          <div class="gallery">
+            <Item
+              v-for="item in items.playlists.items"
+              :key="item.id"
+              :value="item"
+              :to="'/playlist/' + item.id"
+            />
+          </div>
+        </template>
+        <template v-if="items.shows && items.shows.items.length > 0">
+          <div class="title">
+            Podcasts:
+          </div>
+          <div class="gallery">
+            <Item
+              v-for="item in items.shows.items"
+              :key="item.id"
+              :value="item"
+              :to="'/show/' + item.id"
+            />
+          </div>
+        </template>
+      </template>
+
+      <template v-else>
+        <div class="title">
+          Playlists:
+        </div>
+        <div class="gallery">
+          <Item
+            v-for="item in playlists.items"
+            :key="item.id"
+            :value="item"
+            :to="'/playlist/' + item.id"
+          />
+        </div>
+        <div class="title">
+          Podcasts:
+        </div>
+        <div class="gallery">
+          <Item
+            v-for="item in shows.items"
+            :key="item.show.id"
+            :value="item.show"
+            :to="'/show/' + item.show.id"
+          />
+        </div>
+      </template>
+    </div>
+    <Keyboard
+      v-model:value="keyboard"
+      @key="search += $event"
+      @delete="search = search.slice(0,-1)"
+      @submit="query"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -173,33 +251,6 @@ export default {
 
 			&::-webkit-scrollbar {
 				display: none;
-			}
-
-			.group {
-				display: block;
-				width: 10rem;
-				box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-				background: rgba(50,50,50,0.4);
-				border-radius: 5px;
-
-				.item {
-					width: 10rem;
-					min-width: 10rem;
-					height: 10rem;
-					min-height: 10rem;
-					background-repeat: no-repeat;
-					background-position: center;
-					background-size: cover;
-					border-radius: 5px 5px 0 0;
-				}
-
-				.name {
-					padding: 0.5rem 0;
-					text-align: center;
-					color: white;
-					font-size: 12px;
-					word-wrap: break-word;
-				}
 			}
 		}
 	}

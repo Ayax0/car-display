@@ -15,9 +15,13 @@ export default {
 </script>
 
 <template>
-	<div class="button">
-		<Icon :icon="icon" height="3rem" :color="color" />
-	</div>
+  <div class="button">
+    <Icon
+      :icon="icon"
+      height="3rem"
+      :color="color"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>

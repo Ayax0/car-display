@@ -32,9 +32,9 @@ export function getImageColor(image) {
             try {
                 data = context.getImageData(0, 0, width, height);
             } catch (e) {
-                reject(defaultRGB);
+                return reject(defaultRGB);
             }
-
+            
             length = data.data.length;
 
             while ((i += blockSize * 4) < length) {

@@ -20,9 +20,9 @@ export default {
 </script>
 
 <template>
-	<div id="app">
-		<router-view />
-	</div>
+  <div id="app">
+    <router-view />
+  </div>
 </template>
 
 <style lang="scss">
@@ -35,6 +35,7 @@ export default {
 	width: 100vw;
 	background: rgb(22, 22, 22);
 	background: linear-gradient(0deg, rgba(22, 22, 22, 1) 0%, rgba(48, 48, 48, 1) 100%);
+	overflow: hidden;
 }
 
 body {
