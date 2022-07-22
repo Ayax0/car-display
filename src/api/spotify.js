@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 export function getCredentials(refresh_token) {
-	const auth_string = Buffer.from(process.env.VUE_APP_CLIENT_ID + ":" + process.env.VUE_APP_CLIENT_SECRET).toString("base64");
+	const auth_string = btoa(process.env.VUE_APP_CLIENT_ID + ":" + process.env.VUE_APP_CLIENT_SECRET);
 	const data = new URLSearchParams();
 
 	data.append("grant_type", "refresh_token");

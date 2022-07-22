@@ -97,7 +97,14 @@ export default createStore({
 				});
 
 				player.addListener("ready", (device) => {
-					state.account.api.put("/me/player", { device_ids: [device.device_id] }).catch((err) => console.log(err.response));
+					console.log(device);
+					setTimeout(
+						() =>
+							state.account.api
+								.put("/me/player", { device_ids: [device.device_id], play: true })
+								.catch((err) => console.log(err.response)),
+						1000
+					);
 				});
 
 				player.addListener("player_state_changed", (data) => {

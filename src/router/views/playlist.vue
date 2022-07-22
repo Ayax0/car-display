@@ -4,7 +4,7 @@ import { mapState } from "vuex";
 import { getImageColor } from "@src/utils/colorUtils.js";
 
 export default {
-	name: "Playlist",
+	name: "PlaylistView",
 	data() {
 		return {
       playlist: undefined,

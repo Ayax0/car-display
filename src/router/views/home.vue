@@ -7,7 +7,7 @@ import Button from "@components/button.component";
 import ColorMixin from "@mixins/image.mixin";
 
 export default {
-	name: "Home",
+	name: "HomeView",
 	components: {
 		VueSlider,
 		SwipeComponent,
@@ -51,7 +51,7 @@ export default {
 
 		setInterval(() => {
 			if (this.status && !this.status.paused) {
-				const currentPos = this.status.position + (Date.now() - this.status.timestamp) * this.status.playback_speed;
+				const currentPos = this.status.position + (Date.now() - this.status.timestamp) * (this.status.playback_speed || 1);
 				this.progress = ((100 / this.status.duration) * currentPos) / 100;
 			}
 		}, 10);

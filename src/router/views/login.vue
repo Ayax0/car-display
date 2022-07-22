@@ -4,7 +4,7 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import Button from "@components/button.component";
 
 export default {
-	name: "Login",
+	name: "LoginView",
 	components: {
 		Button,
 	},

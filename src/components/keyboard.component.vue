@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: "Keyboard",
+        name: "KeyboardComponent",
         props: {
             value: { type: Boolean, required: true }
         },
