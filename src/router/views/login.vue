@@ -6,15 +6,15 @@ import Button from "@components/button.component";
 export default {
 	name: "Login",
 	components: {
-		Button
+		Button,
 	},
 	computed: {
 		...mapState({ account: "account" }),
-		...mapGetters({ accounts: "accounts" })
+		...mapGetters({ accounts: "accounts" }),
 	},
 	methods: {
 		...mapMutations({
-			setAccount: "setAccount"
+			setAccount: "setAccount",
 		}),
 		select(account) {
 			this.setAccount(account);
@@ -22,7 +22,7 @@ export default {
 			let spotifyScript = document.createElement("script");
 			spotifyScript.setAttribute("src", "https://sdk.scdn.co/spotify-player.js");
 			document.body.appendChild(spotifyScript);
-		}
+		},
 	},
 };
 </script>
@@ -77,7 +77,8 @@ export default {
 		justify-content: center;
 		align-items: center;
 		margin: 1rem;
-		box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+		box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
+			rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
 		color: rgb(200, 200, 200);
 	}
 }

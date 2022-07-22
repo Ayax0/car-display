@@ -16,6 +16,13 @@ module.exports = {
 			},
 		},
 	},
+	pwa: {
+		name: "CarRadio",
+		themeColor: "#4DBA87",
+		msTileColor: "#000000",
+		appleMobileWebAppCapable: "yes",
+		appleMobileWebAppStatusBarStyle: "black",
+	},
 	css: {
 		loaderOptions: {
 			sass: {

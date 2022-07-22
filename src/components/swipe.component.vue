@@ -82,7 +82,7 @@ export default {
 </script>
 
 <template>
-	<div ref="swipe_component" />
+  <div ref="swipe_component" />
 </template>
 
 <style lang="scss" scoped></style>

@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import createSpotifyApi from "@src/api/spotify";
 import { getImageColor } from "@src/utils/colorUtils";
+import axios from "axios";
 
 export default createStore({
 	state() {
@@ -17,16 +18,16 @@ export default createStore({
 	},
 	getters: {
 		accounts(state) {
-			return state.accounts.sort((a,b) => a.display_name < b.display_name ? -1 : a.display_name == b.display_name ? 0 : 1);
+			return state.accounts.sort((a, b) => (a.display_name < b.display_name ? -1 : a.display_name == b.display_name ? 0 : 1));
 		},
 		image(state) {
-			if(!state.current_playing) return undefined;
+			if (!state.current_playing) return undefined;
 			return state.current_playing.album.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0];
 		},
 		artists(state) {
-			if(!state.current_playing) return undefined;
+			if (!state.current_playing) return undefined;
 			return state.current_playing.artists.map((artist) => artist.name).join(", ");
-		}
+		},
 	},
 	mutations: {
 		addAccount(state, account) {
@@ -52,11 +53,25 @@ export default createStore({
 		},
 		setSearchQuery(state, query) {
 			state.search_query = query;
-		}
+		},
 	},
 	actions: {
-		init({ commit, state, dispatch }) {
-			const tokens = process.env.VUE_APP_TOKENS.split(";");
+		async init({ commit, state, dispatch }) {
+			const getVariable = async () => {
+				return new Promise((resolve, reject) => {
+					axios
+						.get(window.location.origin + "/variables.json")
+						.then((result) => resolve(result.data))
+						.catch(() => {
+							const variables = require("../variables.json");
+							if (variables) resolve(variables);
+							else reject();
+						});
+				});
+			};
+
+			const variables = await getVariable();
+			const tokens = variables.refresh_tokens;
 			for (const refresh_token of tokens) {
 				createSpotifyApi(refresh_token)
 					.then((api) => {
@@ -78,17 +93,17 @@ export default createStore({
 				const player = new window.Spotify.Player({
 					name: "Opel Corsa C14",
 					getOAuthToken: (cb) => cb(state.account.api.access_token),
-					volume: 0.1
+					volume: 0.1,
 				});
-	
+
 				player.addListener("ready", (device) => {
 					state.account.api.put("/me/player", { device_ids: [device.device_id] }).catch((err) => console.log(err.response));
 				});
-	
+
 				player.addListener("player_state_changed", (data) => {
 					dispatch("setStatus", data);
 				});
-	
+
 				player.connect();
 			};
 		},
@@ -96,9 +111,8 @@ export default createStore({
 			const current_playing = status.track_window.current_track;
 			const current_image = current_playing.album.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0];
 
-			if(!state.current_playing || current_playing.id != state.current_playing.id) {
-				getImageColor(current_image)
-				.then((res) => {
+			if (!state.current_playing || current_playing.id != state.current_playing.id) {
+				getImageColor(current_image).then((res) => {
 					commit("setPrimary", `rgb(${res[0].r},${res[0].g},${res[0].b})`);
 					commit("setSecondary", `rgb(${res[1].r},${res[1].g},${res[1].b})`);
 				});
@@ -109,9 +123,11 @@ export default createStore({
 		},
 		search({ commit, state }) {
 			if (!state.search_query) commit("setSearchItems", undefined);
-			else state.account.api.get("/search?q=" + encodeURI(state.search_query) + "&type=artist,playlist,track,show")
-				.then((res) => commit("setSearchItems", res.data))
-				.catch((err) => console.error(err.response));
-		}
+			else
+				state.account.api
+					.get("/search?q=" + encodeURI(state.search_query) + "&type=artist,playlist,track,show")
+					.then((res) => commit("setSearchItems", res.data))
+					.catch((err) => console.error(err.response));
+		},
 	},
 });
