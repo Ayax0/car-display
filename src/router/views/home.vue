@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapGetters, mapMutations, mapActions } from "vuex"
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 
 import VueSlider from "vue-slider-component";
 import SwipeComponent from "@components/swipe.component";
@@ -47,7 +47,7 @@ export default {
 		},
 	},
 	mounted() {
-		if(!this.account) return this.$router.push("/login");
+		if (!this.account) return this.$router.push("/login");
 
 		setInterval(() => {
 			if (this.status && !this.status.paused) {
@@ -58,10 +58,10 @@ export default {
 	},
 	methods: {
 		...mapMutations({
-			setCurrentPlaying: "setCurrentPlaying"
+			setCurrentPlaying: "setCurrentPlaying",
 		}),
 		...mapActions({
-			setStatus: "setStatus"
+			setStatus: "setStatus",
 		}),
 		triggerPlayback() {
 			if (this.status.paused) this.play();
@@ -85,9 +85,7 @@ export default {
 		updateVolume() {
 			if (Date.now() - this.last_volume_change > 1000) {
 				this.last_volume_change = Date.now();
-				this.account.api
-					.put("/me/player/volume?volume_percent=" + this.volume)
-					.catch((err) => console.log(err.response));
+				this.account.api.put("/me/player/volume?volume_percent=" + this.volume).catch((err) => console.log(err.response));
 			} else setTimeout(() => this.updateVolume(), 1020);
 		},
 		increaseVolume() {
@@ -132,118 +130,65 @@ export default {
 </script>
 
 <template>
-  <div
-    :style="cssBridge"
-    class="main-wrapper"
-  >
-    <div class="main">
-      <div class="cover">
-        <img
-          v-if="image"
-          :src="image.url"
-          class="album-cover"
-        >
-      </div>
-      <div class="info">
-        <template v-if="current">
-          <div class="song">
-            {{ current.name }}
-          </div>
-          <div class="artist">
-            {{ artists }}
-          </div>
-        </template>
-      </div>
-      <div
-        class="timeline"
-        @click="triggerTimeline"
-      >
-        <div
-          class="progress"
-          :style="`width: calc(100% * ${progress})`"
-        />
-      </div>
-      <div class="action-wrapper">
-        <div class="action">
-          <template v-if="status">
-            <template v-if="volume_dialog">
-              <Button
-                icon="mdi:volume"
-                @click="volume_dialog = false"
-              />
-              <Button
-                icon="mdi:minus"
-                @click="decreaseVolume"
-              />
-              <VueSlider
-                v-model="volume"
-                tooltip="none"
-                class="slider"
-              />
-              <Button
-                icon="mdi:plus"
-                @click="increaseVolume"
-              />
-            </template>
-            <template v-else>
-              <Button
-                icon="mdi:volume"
-                @click="volume_dialog = true"
-              />
-              <div class="spacer" />
-              <Button
-                icon="mdi:skip-previous"
-                @click="previous"
-              />
-              <Button
-                v-if="status.paused"
-                icon="mdi:play"
-                @click="play"
-              />
-              <Button
-                v-else
-                icon="mdi:pause"
-                @click="pause"
-              />
-              <Button
-                icon="mdi:skip-next"
-                @click="next"
-              />
-              <div class="spacer" />
-              <router-link
-                v-slot="{ navigate }"
-                to="/search"
-                custom
-              >
-                <Button
-                  icon="mdi:search"
-                  @click="navigate"
-                />
-              </router-link>
-            </template>
-          </template>
-          <template v-else>
-            <div class="spacer" />
-            <Button
-              icon="mdi:refresh"
-              @click="$router.go()"
-            />
-            <div class="spacer" />
-          </template>
-        </div>
-      </div>
-      <div class="volume" />
-    </div>
-    <SwipeComponent
-      class="swipe-component"
-      @tab="tab"
-      @swipeLeft="swipeLeft"
-      @swipeRight="swipeRight"
-      @swipeUp="swipeUp"
-      @swipeDown="swipeDown"
-      @swipe="swipe"
-    />
-  </div>
+	<div :style="cssBridge" class="main-wrapper">
+		<div class="main">
+			<div class="cover">
+				<img v-if="image" :src="image.url" class="album-cover" />
+			</div>
+			<div class="info">
+				<template v-if="current">
+					<div class="song">
+						{{ current.name }}
+					</div>
+					<div class="artist">
+						{{ artists }}
+					</div>
+				</template>
+			</div>
+			<div class="timeline" @click="triggerTimeline">
+				<div class="progress" :style="`width: calc(100% * ${progress})`" />
+			</div>
+			<div class="action-wrapper">
+				<div class="action">
+					<template v-if="status">
+						<template v-if="volume_dialog">
+							<Button icon="mdi:volume" @click="volume_dialog = false" />
+							<Button icon="mdi:minus" @click="decreaseVolume" />
+							<VueSlider v-model="volume" tooltip="none" class="slider" />
+							<Button icon="mdi:plus" @click="increaseVolume" />
+						</template>
+						<template v-else>
+							<Button icon="mdi:volume" @click="volume_dialog = true" />
+							<div class="spacer" />
+							<Button icon="mdi:skip-previous" @click="previous" />
+							<Button v-if="status.paused" icon="mdi:play" @click="play" />
+							<Button v-else icon="mdi:pause" @click="pause" />
+							<Button icon="mdi:skip-next" @click="next" />
+							<div class="spacer" />
+							<router-link v-slot="{ navigate }" to="/search" custom>
+								<Button icon="mdi:search" @click="navigate" />
+							</router-link>
+						</template>
+					</template>
+					<template v-else>
+						<div class="spacer" />
+						<Button icon="mdi:refresh" @click="$router.go()" />
+						<div class="spacer" />
+					</template>
+				</div>
+			</div>
+			<div class="volume" />
+		</div>
+		<SwipeComponent
+			class="swipe-component"
+			@tab="tab"
+			@swipeLeft="swipeLeft"
+			@swipeRight="swipeRight"
+			@swipeUp="swipeUp"
+			@swipeDown="swipeDown"
+			@swipe="swipe"
+		/>
+	</div>
 </template>
 
 <style lang="scss" scoped>

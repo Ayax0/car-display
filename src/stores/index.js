@@ -13,7 +13,7 @@ export default createStore({
 			primary: "rgb(22,22,22)",
 			secondary: "rgb(10,10,10)",
 			search_items: undefined,
-			search_query: undefined,
+			search_query: "",
 		};
 	},
 	getters: {
@@ -129,7 +129,7 @@ export default createStore({
 			commit("setStatus", status);
 		},
 		search({ commit, state }) {
-			if (!state.search_query) commit("setSearchItems", undefined);
+			if (!state.search_query || state.search_query.length == 0) commit("setSearchItems", undefined);
 			else
 				state.account.api
 					.get("/search?q=" + encodeURI(state.search_query) + "&type=artist,playlist,track,show")
