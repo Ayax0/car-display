@@ -28,24 +28,16 @@ export default {
 </script>
 
 <template>
-  <div class="main">
-    <div class="account-carusel">
-      <div
-        v-for="account in accounts"
-        :key="account.id"
-        class="account-tile"
-        @click="select(account)"
-      >
-        {{ account.display_name }}
-      </div>
-    </div>
-    <div class="account-action">
-      <Button
-        icon="mdi:refresh"
-        @click="$router.go()"
-      />
-    </div>
-  </div>
+	<div class="main">
+		<div class="account-carusel">
+			<div v-for="account in accounts" :key="account.id" class="account-tile" @click="select(account)">
+				{{ account.display_name }}
+			</div>
+		</div>
+		<div class="account-action">
+			<Button icon="mdi:refresh" @click="$router.go()" />
+		</div>
+	</div>
 </template>
 
 <style lang="scss" scoped>

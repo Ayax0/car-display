@@ -6,6 +6,7 @@ variables.json
 
 # local env files
 .env.local
+.env.*
 .env.*.local
 
 # Log files

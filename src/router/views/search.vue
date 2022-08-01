@@ -8,14 +8,14 @@ export default {
 	name: "SearchView",
 	components: {
 		Keyboard,
-		Item
+		Item,
 	},
 	data() {
 		return {
 			playlists: [],
 			shows: [],
 			keyboard: false,
-		}
+		};
 	},
 	computed: {
 		...mapState({ account: "account", items: "search_items" }),
@@ -25,165 +25,105 @@ export default {
 			},
 			set(value) {
 				return this.$store.commit("setSearchQuery", value);
-			}
-		}
+			},
+		},
 	},
 	mounted() {
-		if(!this.account) return this.$router.push("/login");
+		if (!this.account) return this.$router.push("/login");
 
-		this.account.api.get("/me/playlists?limit=20&offset=0")
-		.then((res) => (this.playlists = res.data))
-		.catch((err) => console.log(err.response))
+		this.account.api
+			.get("/me/playlists?limit=20&offset=0")
+			.then((res) => (this.playlists = res.data))
+			.catch((err) => console.log(err.response));
 
-		this.account.api.get("/me/shows?limit=20&offset=0")
-		.then((res) => (this.shows = res.data))
-		.catch((err) => console.log(err.response))
+		this.account.api
+			.get("/me/shows?limit=20&offset=0")
+			.then((res) => (this.shows = res.data))
+			.catch((err) => console.log(err.response));
 	},
 	methods: {
 		...mapActions({
-			query: "search"
+			query: "search",
 		}),
 		play(item) {
-			this.account.api.put("/me/player/play", {
-				context_uri: item.uri,
-			})
-			.then(() => this.$router.push("/"))
-			.catch((err) => console.log(err.response));
+			this.account.api
+				.put("/me/player/play", {
+					context_uri: item.uri,
+				})
+				.then(() => this.$router.push("/"))
+				.catch((err) => console.log(err.response));
 		},
 		playTrack(item) {
-			this.account.api.put("/me/player/play", {
-				uris: [item.uri],
-			})
-			.then(() => this.$router.push("/"))
-			.catch((err) => console.log(err.response));
+			this.account.api
+				.put("/me/player/play", {
+					uris: [item.uri],
+				})
+				.then(() => this.$router.push("/"))
+				.catch((err) => console.log(err.response));
 		},
-	}
+	},
 };
 </script>
 
 <template>
-  <div class="main">
-    <div class="sidebar">
-      <div
-        class="nav-item"
-        @click="$router.push('/')"
-      >
-        <Icon
-          icon="mdi:home"
-          height="2.5rem"
-          color="white"
-        />
-      </div>
-      <div class="spacer" />
-      <div
-        class="nav-item"
-        @click="$router.go()"
-      >
-        <Icon
-          icon="mdi:refresh"
-          height="2.5rem"
-          color="white"
-        />
-      </div>
-    </div>
-    <div class="content">
-      <div class="search">
-        <div class="spacer" />
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Suchen..."
-          @focus="keyboard = true"
-        >
-      </div>
-      <template v-if="items">
-        <template v-if="items.artists && items.artists.items.length > 0">
-          <div class="title">
-            Künstler:
-          </div>
-          <div class="gallery">
-            <Item
-              v-for="item in items.artists.items"
-              :key="item.id"
-              :value="item"
-              rounded
-              @click="play(item)"
-            />
-          </div>
-        </template>
-        <template v-if="items.tracks && items.tracks.items.length > 0">
-          <div class="title">
-            Songs:
-          </div>
-          <div class="gallery">
-            <Item
-              v-for="item in items.tracks.items"
-              :key="item.id"
-              :value="item"
-              @click="playTrack(item)"
-            />
-          </div>
-        </template>
-        <template v-if="items.playlists && items.playlists.items.length > 0">
-          <div class="title">
-            Playlists:
-          </div>
-          <div class="gallery">
-            <Item
-              v-for="item in items.playlists.items"
-              :key="item.id"
-              :value="item"
-              :to="'/playlist/' + item.id"
-            />
-          </div>
-        </template>
-        <template v-if="items.shows && items.shows.items.length > 0">
-          <div class="title">
-            Podcasts:
-          </div>
-          <div class="gallery">
-            <Item
-              v-for="item in items.shows.items"
-              :key="item.id"
-              :value="item"
-              :to="'/show/' + item.id"
-            />
-          </div>
-        </template>
-      </template>
+	<div class="main">
+		<div class="sidebar">
+			<div class="nav-item" @click="$router.push('/')">
+				<Icon icon="mdi:home" height="2.5rem" color="white" />
+			</div>
+			<div class="nav-item" @click="$router.push('/test')">
+				<Icon icon="mdi:test-tube" height="2.5rem" color="white" />
+			</div>
+			<div class="spacer" />
+			<div class="nav-item" @click="$router.go()">
+				<Icon icon="mdi:refresh" height="2.5rem" color="white" />
+			</div>
+		</div>
+		<div class="content">
+			<div class="search">
+				<div class="spacer" />
+				<input v-model="search" type="text" placeholder="Suchen..." @focus="keyboard = true" />
+			</div>
+			<template v-if="items">
+				<template v-if="items.artists && items.artists.items.length > 0">
+					<div class="title">Künstler:</div>
+					<div class="gallery">
+						<Item v-for="item in items.artists.items" :key="item.id" :value="item" rounded @click="play(item)" />
+					</div>
+				</template>
+				<template v-if="items.tracks && items.tracks.items.length > 0">
+					<div class="title">Songs:</div>
+					<div class="gallery">
+						<Item v-for="item in items.tracks.items" :key="item.id" :value="item" @click="playTrack(item)" />
+					</div>
+				</template>
+				<template v-if="items.playlists && items.playlists.items.length > 0">
+					<div class="title">Playlists:</div>
+					<div class="gallery">
+						<Item v-for="item in items.playlists.items" :key="item.id" :value="item" :to="'/playlist/' + item.id" />
+					</div>
+				</template>
+				<template v-if="items.shows && items.shows.items.length > 0">
+					<div class="title">Podcasts:</div>
+					<div class="gallery">
+						<Item v-for="item in items.shows.items" :key="item.id" :value="item" :to="'/show/' + item.id" />
+					</div>
+				</template>
+			</template>
 
-      <template v-else>
-        <div class="title">
-          Playlists:
-        </div>
-        <div class="gallery">
-          <Item
-            v-for="item in playlists.items"
-            :key="item.id"
-            :value="item"
-            :to="'/playlist/' + item.id"
-          />
-        </div>
-        <div class="title">
-          Podcasts:
-        </div>
-        <div class="gallery">
-          <Item
-            v-for="item in shows.items"
-            :key="item.show.id"
-            :value="item.show"
-            :to="'/show/' + item.show.id"
-          />
-        </div>
-      </template>
-    </div>
-    <Keyboard
-      v-model:value="keyboard"
-      @key="search += $event"
-      @delete="search = search.slice(0,-1)"
-      @submit="query"
-    />
-  </div>
+			<template v-else>
+				<div class="title">Playlists:</div>
+				<div class="gallery">
+					<Item v-for="item in playlists.items" :key="item.id" :value="item" :to="'/playlist/' + item.id" />
+				</div>
+				<div class="title">Podcasts:</div>
+				<div class="gallery">
+					<Item v-for="item in shows.items" :key="item.show.id" :value="item.show" :to="'/show/' + item.show.id" />
+				</div>
+			</template>
+		</div>
+		<Keyboard v-model:value="keyboard" @key="search += $event" @delete="search = search.slice(0, -1)" @submit="query" />
+	</div>
 </template>
 
 <style lang="scss" scoped>

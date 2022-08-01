@@ -6,6 +6,7 @@ import axios from "axios";
 export default createStore({
 	state() {
 		return {
+			variables: undefined,
 			accounts: [],
 			account: undefined,
 			current_playing: undefined,
@@ -54,6 +55,9 @@ export default createStore({
 		setSearchQuery(state, query) {
 			state.search_query = query;
 		},
+		setVariables(state, variables) {
+			state.variables = variables;
+		},
 	},
 	actions: {
 		async init({ commit, state, dispatch }) {
@@ -72,6 +76,8 @@ export default createStore({
 
 			const variables = await getVariable();
 			const tokens = variables.refresh_tokens;
+
+			commit("setVariables", variables);
 			for (const refresh_token of tokens) {
 				createSpotifyApi(refresh_token)
 					.then((api) => {
