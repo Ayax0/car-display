@@ -17,15 +17,15 @@ export default {
 			routes: [],
 		};
 	},
-	watch: {
-		ready(value, previous) {
-			if (!previous && value && this.api) {
-				const TrafficLayer = this.api.TrafficLayer;
-				const trafficLayer = new TrafficLayer();
-				trafficLayer.setMap(this.map);
-			}
-		},
-	},
+	// watch: {
+	// 	ready(value, previous) {
+	// 		if (!previous && value && this.api) {
+	// 			const TrafficLayer = this.api.TrafficLayer;
+	// 			const trafficLayer = new TrafficLayer();
+	// 			trafficLayer.setMap(this.map);
+	// 		}
+	// 	},
+	// },
 	methods: {
 		route(from, to) {
 			const DirectionsService = this.api.DirectionsService;
@@ -38,6 +38,7 @@ export default {
 					destination: to,
 					travelMode: TravelMode.DRIVING,
 					unitSystem: UnitSystem.METRIC,
+					region: "CH",
 				},
 				(result, status) => {
 					if (status != Status.OK) return console.warn("routing error");
@@ -51,7 +52,7 @@ export default {
 </script>
 
 <template>
-	<Route v-for="(path, index) in routes" :key="index" :position="position" :route="path" :api="api" />
+	<Route v-for="(path, index) in routes" :key="index" :position="position" :route="path" />
 </template>
 
 <style lang="scss" scoped></style>

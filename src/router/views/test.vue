@@ -1,16 +1,21 @@
 <script>
 import Map from "@components/map.component.vue";
+import Keyboard from "@components/keyboard.component.vue";
+import axios from "axios";
 
 export default {
 	name: "TestView",
 	components: {
 		Map,
+		Keyboard,
 	},
 	data() {
 		return {
 			gps: undefined,
 			from: "",
 			to: "",
+			from_keyboard: false,
+			to_keyboard: false,
 		};
 	},
 	computed: {
@@ -50,15 +55,30 @@ export default {
 			if (data) this.gps = data;
 		},
 	},
+	methods: {
+		startRecording() {
+			axios.post(process.env.VUE_APP_SERVER + "/record").then(() => console.log("start recording"));
+		},
+		stopRecording() {
+			axios.put(process.env.VUE_APP_SERVER + "/record").then(() => console.log("stop recording"));
+		},
+	},
 };
 </script>
 
 <template>
 	<div class="test-main">
 		<Map ref="map" />
-		<input v-model="from" type="text" placeholder="From" />
-		<input v-model="to" type="text" placeholder="To" />
-		<button @click="$refs.map.route(from, to)">Submit</button>
+		<div class="map-control">
+			<input v-model="from" type="text" placeholder="From" @focus="from_keyboard = true" />
+			<input v-model="to" type="text" placeholder="To" @focus="to_keyboard = true" />
+			<button @click="$refs.map.route(from, to)">Submit</button>
+			<div style="flex: 1" />
+			<button @click="startRecording">Record Start</button>
+			<button @click="stopRecording">Record Stop</button>
+			<Keyboard v-model:value="from_keyboard" @key="from += $event" @delete="from = from.slice(0, -1)" @submit="$refs.map.route(from, to)" />
+			<Keyboard v-model:value="to_keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(from, to)" />
+		</div>
 		<table v-if="gps">
 			<tr>
 				<th>Beschreibung</th>
@@ -145,5 +165,17 @@ export default {
 	justify-content: center;
 	align-items: center;
 	border-radius: 50%;
+}
+
+input,
+button {
+	font-size: 16px;
+	padding: 0.5rem;
+}
+
+.map-control {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 0;
 }
 </style>

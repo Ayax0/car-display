@@ -1,5 +1,6 @@
 <script>
 import { Polyline } from "vue3-google-map";
+import { getDistance } from "geolib";
 
 export default {
 	name: "RouteComponent",
@@ -9,7 +10,6 @@ export default {
 	props: {
 		position: { type: Object, default: undefined },
 		route: { type: Object, default: undefined },
-		api: { type: Object, default: undefined },
 	},
 	data() {
 		return {
@@ -34,13 +34,11 @@ export default {
 			handler(position) {
 				if (!this.route?.overview_path) return;
 
-				const computeDistance = this.api.geometry.spherical.computeDistanceBetween;
-
 				if (this.currentIndex == -1) {
 					let distance = Number.MAX_VALUE;
 					let shortestIndex = 0;
 					for (let i = 0; i < this.route.overview_path.length; i++) {
-						const _distance = computeDistance(position, this.route.overview_path[i]);
+						const _distance = getDistance(position, this.route.overview_path[i]);
 						if (_distance < distance) {
 							distance = _distance;
 							shortestIndex = i;
@@ -49,9 +47,9 @@ export default {
 					this.currentIndex = shortestIndex;
 				} else {
 					const lastWaypoint =
-						this.currentIndex == 0 ? Number.MAX_VALUE : computeDistance(position, this.route.overview_path[this.currentIndex - 1]);
-					const currentWaypoint = computeDistance(position, this.route.overview_path[this.currentIndex]);
-					const nextWaypoint = computeDistance(position, this.route.overview_path[this.currentIndex + 1]);
+						this.currentIndex == 0 ? Number.MAX_VALUE : getDistance(position, this.route.overview_path[this.currentIndex - 1]);
+					const currentWaypoint = getDistance(position, this.route.overview_path[this.currentIndex]);
+					const nextWaypoint = getDistance(position, this.route.overview_path[this.currentIndex + 1]);
 					if (lastWaypoint < currentWaypoint && lastWaypoint < nextWaypoint) this.currentIndex--;
 					if (nextWaypoint < lastWaypoint && nextWaypoint < currentWaypoint) this.currentIndex++;
 				}
@@ -62,7 +60,7 @@ export default {
 					let distance = Number.MAX_VALUE;
 					let shortestIndex = 0;
 					for (let i = 0; i < this.route.legs[0].steps.length; i++) {
-						const _distance = computeDistance(position, this.route.legs[0].steps[i].end_location);
+						const _distance = getDistance(position, this.route.legs[0].steps[i].end_location);
 						if (_distance < distance) {
 							distance = _distance;
 							shortestIndex = i;
@@ -70,11 +68,11 @@ export default {
 					}
 					this.currentStep = shortestIndex;
 				} else {
-					const currentStepDistance = computeDistance(
+					const currentStepDistance = getDistance(
 						this.route.legs[0].steps[this.currentStep].start_location,
 						this.route.legs[0].steps[this.currentStep].end_location
 					);
-					const currentDistance = computeDistance(this.route.legs[0].steps[this.currentStep].start_location, position);
+					const currentDistance = getDistance(this.route.legs[0].steps[this.currentStep].start_location, position);
 					if (currentDistance > currentStepDistance) this.currentStep++;
 				}
 			},
@@ -83,10 +81,10 @@ export default {
 };
 </script>
 
-<template v-if="route && api">
+<template v-if="route">
 	<Polyline :options="{ path: pastRoute, strokeColor: '#333', strokeWeight: 8, strokeOpacity: 0.6 }" />
 	<Polyline :options="{ path: futureRoute, strokeColor: '#0066ff', strokeWeight: 8, strokeOpacity: 0.8 }" />
-	<div v-if="route.legs[0].steps" class="route-info" v-html="route.legs[0].steps[currentStep - 1 < 0 ? 0 : currentStep - 1].instructions"></div>
+	<div v-if="route.legs[0].steps" class="route-info" v-html="route.legs[0].steps[currentStep + 1].instructions"></div>
 </template>
 
 <style lang="scss" scoped>

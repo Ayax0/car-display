@@ -1,5 +1,6 @@
 <script>
 import { CustomMarker } from "vue3-google-map";
+import { getDistance, getRhumbLineBearing } from "geolib";
 
 export default {
 	name: "CarComponent",
@@ -8,7 +9,6 @@ export default {
 	},
 	props: {
 		position: { type: Object, default: undefined },
-		api: { type: Object, default: undefined },
 		map: { type: Object, default: undefined },
 	},
 	emits: ["heading"],
@@ -21,12 +21,11 @@ export default {
 		position: {
 			deep: true,
 			handler(value, previous) {
-				if (!this.api || !this.map) return;
-				const computeDistance = this.api.geometry.spherical.computeDistanceBetween;
-				const computeHeading = this.api.geometry.spherical.computeHeading;
-				const distance = computeDistance(previous, value);
-				if (distance <= 0.5) return;
-				const heading = computeHeading(previous, value);
+				if (this.map == undefined) return;
+				const distance = getDistance(previous, value, 0.5);
+				console.log(distance);
+				if (distance <= 0) return;
+				const heading = getRhumbLineBearing(previous, value);
 				this.heading = heading;
 				this.$emit("heading", heading);
 			},

@@ -46,7 +46,8 @@ export default {
 	},
 	methods: {
 		route(from, to) {
-			this.$refs.router.route(from, to);
+			if (to == undefined) return;
+			this.$refs.router.route(from || { lat: this.gps.lat, lng: this.gps.lon }, to);
 		},
 	},
 };
@@ -63,11 +64,12 @@ export default {
 		:disableDefaultUi="true"
 		gestureHandling="cooperative"
 		mapId="9a664a373c810533"
+		language="de"
 		style="width: 100%; height: calc(100vh - 2rem)"
 	>
 		<template #default="{ ready, api, map }">
 			<Control :ready="ready" :map="map" :follow="follow" @follow="follow = $event" />
-			<Car :api="api" :position="position" :map="map" @heading="heading = $event" />
+			<Car :position="position" :map="map" @heading="heading = $event" />
 			<Router ref="router" :position="position" :ready="ready" :api="api" :map="map" />
 		</template>
 	</GoogleMap>
