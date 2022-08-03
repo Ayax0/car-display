@@ -4,6 +4,7 @@ import { GoogleMap } from "vue3-google-map";
 import Router from "@components/router.component.vue";
 import Car from "@components/car.component.vue";
 import Control from "@components/control.component.vue";
+import Movement from "@components/movement.component.vue";
 
 export default {
 	name: "MapComponent",
@@ -12,42 +13,47 @@ export default {
 		Router,
 		Car,
 		Control,
+		Movement,
 	},
 	data() {
 		return {
-			gps: undefined,
-			center: { lat: 0, lng: 0 },
-			heading: 0,
+			gps: {
+				lat: undefined,
+				lng: undefined,
+				hdop: undefined,
+				pdop: undefined,
+				vdop: undefined,
+				alt: undefined,
+				speed: undefined,
+				track: undefined,
+				satsVisible: 0,
+			},
+			fixedPosition: undefined,
 			follow: true,
 		};
 	},
-	computed: {
-		position() {
-			if (!this.gps) return { lat: 0, lng: 0 };
-			return { lat: this.gps.lat, lng: this.gps.lon };
-		},
-	},
 	sockets: {
 		gps(data) {
-			if (data) this.gps = data;
-		},
-	},
-	watch: {
-		gps(value, previous) {
-			if ((!previous && value) || this.follow) {
-				this.center = { lat: value.lat, lng: value.lon };
+			if (data.lat) this.gps.lat = data.lat;
+			if (data.lon) this.gps.lng = data.lon;
+			if (data.hdop) this.gps.hdop = data.hdop;
+			if (data.pdop) this.gps.pdop = data.pdop;
+			if (data.vdop) this.gps.vdop = data.vdop;
+			if (data.alt) this.gps.alt = data.alt;
+			if (data.speed) this.gps.speed = data.speed;
+			if (data.track) {
+				const _track = data.track - 180;
+				if (_track == 0) this.gps.track = 180;
+				if (_track < 0) this.gps.track = _track + 180;
+				if (_track > 0) this.gps.track = _track - 180;
 			}
-		},
-		follow(value, previous) {
-			if (!previous && value) {
-				this.center = { lat: this.gps.lat, lng: this.gps.lon };
-			}
+			if (data.satsVisible) this.gps.satsVisible = data.satsVisible.length || 0;
 		},
 	},
 	methods: {
 		route(from, to) {
 			if (to == undefined) return;
-			this.$refs.router.route(from || { lat: this.gps.lat, lng: this.gps.lon }, to);
+			this.$refs.router.route(from || { lat: this.gps.lat, lng: this.gps.lng }, to);
 		},
 	},
 };
@@ -57,9 +63,8 @@ export default {
 	<GoogleMap
 		class="map"
 		:api-key="$store.state.variables.google_api"
-		:center="center"
 		:zoom="18"
-		:tilt="45"
+		:tilt="60"
 		:heading="heading"
 		:disableDefaultUi="true"
 		gestureHandling="cooperative"
@@ -68,9 +73,10 @@ export default {
 		style="width: 100%; height: calc(100vh - 2rem)"
 	>
 		<template #default="{ ready, api, map }">
-			<Control :ready="ready" :map="map" :follow="follow" @follow="follow = $event" />
-			<Car :position="position" :map="map" @heading="heading = $event" />
-			<Router ref="router" :position="position" :ready="ready" :api="api" :map="map" />
+			<Control :ready="ready" :position="gps" :map="map" :follow="follow" @follow="follow = $event" />
+			<Car :ready="ready" :position="fixedPosition" :map="map" />
+			<Router ref="router" :ready="ready" :position="gps" :map="map" :api="api" />
+			<Movement :ready="ready" :position="gps" :map="map" @position="fixedPosition = $event" />
 		</template>
 	</GoogleMap>
 </template>

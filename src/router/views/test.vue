@@ -16,6 +16,7 @@ export default {
 			to: "",
 			from_keyboard: false,
 			to_keyboard: false,
+			recording: false,
 		};
 	},
 	computed: {
@@ -57,10 +58,22 @@ export default {
 	},
 	methods: {
 		startRecording() {
-			axios.post(process.env.VUE_APP_SERVER + "/record").then(() => console.log("start recording"));
+			new Notification("test");
+			axios
+				.post(process.env.VUE_APP_SERVER + "/record")
+				.then(() => {
+					this.recording = true;
+					window.alert("start recording");
+				})
+				.catch(() => window.alert("error recording"));
 		},
 		stopRecording() {
-			axios.put(process.env.VUE_APP_SERVER + "/record").then(() => console.log("stop recording"));
+			axios
+				.put(process.env.VUE_APP_SERVER + "/record")
+				.then(() => {
+					this.recording = false;
+				})
+				.catch(() => window.alert("error recording"));
 		},
 	},
 };
@@ -68,16 +81,26 @@ export default {
 
 <template>
 	<div class="test-main">
-		<Map ref="map" />
+		<template v-if="gps">
+			<Map ref="map" />
+			<div class="map-control">
+				<input v-model="from" type="text" placeholder="From" @focus="from_keyboard = true" />
+				<input v-model="to" type="text" placeholder="To" @focus="to_keyboard = true" />
+				<button @click="$refs.map.route(from, to)">Submit</button>
+				<div style="flex: 1" />
+				<Keyboard
+					v-model:value="from_keyboard"
+					@key="from += $event"
+					@delete="from = from.slice(0, -1)"
+					@submit="$refs.map.route(from, to)"
+				/>
+				<Keyboard v-model:value="to_keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(from, to)" />
+			</div>
+		</template>
 		<div class="map-control">
-			<input v-model="from" type="text" placeholder="From" @focus="from_keyboard = true" />
-			<input v-model="to" type="text" placeholder="To" @focus="to_keyboard = true" />
-			<button @click="$refs.map.route(from, to)">Submit</button>
-			<div style="flex: 1" />
+			<div>Recording: {{ recording }}</div>
 			<button @click="startRecording">Record Start</button>
 			<button @click="stopRecording">Record Stop</button>
-			<Keyboard v-model:value="from_keyboard" @key="from += $event" @delete="from = from.slice(0, -1)" @submit="$refs.map.route(from, to)" />
-			<Keyboard v-model:value="to_keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(from, to)" />
 		</div>
 		<table v-if="gps">
 			<tr>
@@ -114,7 +137,7 @@ export default {
 			</tr>
 			<tr>
 				<td>Sateliten</td>
-				<td>{{ gps.satsVisible.length || 0 }}</td>
+				<td>{{ (gps.satsVisible || 0).length || 0 }}</td>
 			</tr>
 			<tr>
 				<td>Zeit</td>

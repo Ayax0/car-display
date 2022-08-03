@@ -2,6 +2,10 @@
 import { Polyline } from "vue3-google-map";
 import { getDistance } from "geolib";
 
+function parsePosition(position) {
+	return { lat: position.lat() || position.lat, lng: position.lng() || position.lng };
+}
+
 export default {
 	name: "RouteComponent",
 	components: {
@@ -31,6 +35,7 @@ export default {
 	watch: {
 		position: {
 			immediate: true,
+			deep: true,
 			handler(position) {
 				if (!this.route?.overview_path) return;
 
@@ -38,7 +43,7 @@ export default {
 					let distance = Number.MAX_VALUE;
 					let shortestIndex = 0;
 					for (let i = 0; i < this.route.overview_path.length; i++) {
-						const _distance = getDistance(position, this.route.overview_path[i]);
+						const _distance = getDistance(position, parsePosition(this.route.overview_path[i]));
 						if (_distance < distance) {
 							distance = _distance;
 							shortestIndex = i;
@@ -47,9 +52,15 @@ export default {
 					this.currentIndex = shortestIndex;
 				} else {
 					const lastWaypoint =
-						this.currentIndex == 0 ? Number.MAX_VALUE : getDistance(position, this.route.overview_path[this.currentIndex - 1]);
-					const currentWaypoint = getDistance(position, this.route.overview_path[this.currentIndex]);
-					const nextWaypoint = getDistance(position, this.route.overview_path[this.currentIndex + 1]);
+						this.currentIndex == 0
+							? Number.MAX_VALUE
+							: getDistance(position, parsePosition(this.route.overview_path[this.currentIndex - 1]));
+					const currentWaypoint = getDistance(position, parsePosition(this.route.overview_path[this.currentIndex]));
+					const nextWaypoint =
+						this.route.overview_path.length <= this.currentIndex
+							? Number.MAX_VALUE
+							: getDistance(position, parsePosition(this.route.overview_path[this.currentIndex + 1]));
+					console.log(lastWaypoint, currentWaypoint, nextWaypoint);
 					if (lastWaypoint < currentWaypoint && lastWaypoint < nextWaypoint) this.currentIndex--;
 					if (nextWaypoint < lastWaypoint && nextWaypoint < currentWaypoint) this.currentIndex++;
 				}
@@ -60,7 +71,7 @@ export default {
 					let distance = Number.MAX_VALUE;
 					let shortestIndex = 0;
 					for (let i = 0; i < this.route.legs[0].steps.length; i++) {
-						const _distance = getDistance(position, this.route.legs[0].steps[i].end_location);
+						const _distance = getDistance(position, parsePosition(this.route.legs[0].steps[i].end_location));
 						if (_distance < distance) {
 							distance = _distance;
 							shortestIndex = i;
@@ -68,13 +79,20 @@ export default {
 					}
 					this.currentStep = shortestIndex;
 				} else {
+					if (!this.route.legs[0].steps.length < this.currentStep) return;
 					const currentStepDistance = getDistance(
-						this.route.legs[0].steps[this.currentStep].start_location,
-						this.route.legs[0].steps[this.currentStep].end_location
+						parsePosition(this.route.legs[0].steps[this.currentStep].start_location),
+						parsePosition(this.route.legs[0].steps[this.currentStep].end_location)
 					);
-					const currentDistance = getDistance(this.route.legs[0].steps[this.currentStep].start_location, position);
+					const currentDistance = getDistance(parsePosition(this.route.legs[0].steps[this.currentStep].start_location), position);
 					if (currentDistance > currentStepDistance) this.currentStep++;
 				}
+			},
+		},
+		currentStep: {
+			immediate: true,
+			handler(value) {
+				console.log("CurrentStep:", value);
 			},
 		},
 	},
