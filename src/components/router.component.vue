@@ -12,6 +12,7 @@ export default {
 		api: { type: Object, default: undefined },
 		map: { type: Object, default: undefined },
 	},
+	emits: ["path"],
 	data() {
 		return {
 			routes: [],
@@ -52,7 +53,7 @@ export default {
 </script>
 
 <template>
-	<Route v-for="(path, index) in routes" :key="index" :position="position" :route="path" />
+	<Route v-for="(path, index) in routes" :key="index" :position="position" :route="path" @path="$emit('path', $event)" />
 </template>
 
 <style lang="scss" scoped></style>

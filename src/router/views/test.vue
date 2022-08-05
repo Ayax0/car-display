@@ -12,10 +12,8 @@ export default {
 	data() {
 		return {
 			gps: undefined,
-			from: "",
 			to: "",
-			from_keyboard: false,
-			to_keyboard: false,
+			keyboard: false,
 			recording: false,
 		};
 	},
@@ -84,17 +82,9 @@ export default {
 		<template v-if="gps">
 			<Map ref="map" />
 			<div class="map-control">
-				<input v-model="from" type="text" placeholder="From" @focus="from_keyboard = true" />
-				<input v-model="to" type="text" placeholder="To" @focus="to_keyboard = true" />
-				<button @click="$refs.map.route(from, to)">Submit</button>
-				<div style="flex: 1" />
-				<Keyboard
-					v-model:value="from_keyboard"
-					@key="from += $event"
-					@delete="from = from.slice(0, -1)"
-					@submit="$refs.map.route(from, to)"
-				/>
-				<Keyboard v-model:value="to_keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(from, to)" />
+				<input v-model="to" type="text" placeholder="To" @focus="keyboard = true" />
+				<button @click="$refs.map.route(to)">Submit</button>
+				<Keyboard v-model:value="keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(to)" />
 			</div>
 		</template>
 		<div class="map-control">

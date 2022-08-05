@@ -15,6 +15,7 @@ export default {
 		position: { type: Object, default: undefined },
 		route: { type: Object, default: undefined },
 	},
+	emits: ["path"],
 	data() {
 		return {
 			// position: { lat: 47.03754851396708, lng: 8.241221494119909 },
@@ -23,13 +24,16 @@ export default {
 		};
 	},
 	computed: {
+		fullRoute() {
+			return this.route.legs[0].steps.map((step) => step.lat_lngs).reduce((value, current) => value.concat(current), []);
+		},
 		pastRoute() {
 			if (!this.route?.overview_path) return [];
-			return this.route.overview_path.slice(0, this.currentIndex + 1);
+			return this.fullRoute.slice(0, this.currentIndex + 1);
 		},
 		futureRoute() {
 			if (!this.route?.overview_path) return [];
-			return this.route.overview_path.slice(this.currentIndex);
+			return this.fullRoute.slice(this.currentIndex);
 		},
 	},
 	watch: {
@@ -42,8 +46,8 @@ export default {
 				if (this.currentIndex == -1) {
 					let distance = Number.MAX_VALUE;
 					let shortestIndex = 0;
-					for (let i = 0; i < this.route.overview_path.length; i++) {
-						const _distance = getDistance(position, parsePosition(this.route.overview_path[i]));
+					for (let i = 0; i < this.fullRoute.length; i++) {
+						const _distance = getDistance(position, parsePosition(this.fullRoute[i]));
 						if (_distance < distance) {
 							distance = _distance;
 							shortestIndex = i;
@@ -52,15 +56,12 @@ export default {
 					this.currentIndex = shortestIndex;
 				} else {
 					const lastWaypoint =
-						this.currentIndex == 0
-							? Number.MAX_VALUE
-							: getDistance(position, parsePosition(this.route.overview_path[this.currentIndex - 1]));
-					const currentWaypoint = getDistance(position, parsePosition(this.route.overview_path[this.currentIndex]));
+						this.currentIndex == 0 ? Number.MAX_VALUE : getDistance(position, parsePosition(this.fullRoute[this.currentIndex - 1]));
+					const currentWaypoint = getDistance(position, parsePosition(this.fullRoute[this.currentIndex]));
 					const nextWaypoint =
-						this.route.overview_path.length <= this.currentIndex
+						this.fullRoute.length <= this.currentIndex
 							? Number.MAX_VALUE
-							: getDistance(position, parsePosition(this.route.overview_path[this.currentIndex + 1]));
-					console.log(lastWaypoint, currentWaypoint, nextWaypoint);
+							: getDistance(position, parsePosition(this.fullRoute[this.currentIndex + 1]));
 					if (lastWaypoint < currentWaypoint && lastWaypoint < nextWaypoint) this.currentIndex--;
 					if (nextWaypoint < lastWaypoint && nextWaypoint < currentWaypoint) this.currentIndex++;
 				}
@@ -79,14 +80,20 @@ export default {
 					}
 					this.currentStep = shortestIndex;
 				} else {
-					if (!this.route.legs[0].steps.length < this.currentStep) return;
+					if (this.currentStep > this.route.legs[0].steps.length) return;
 					const currentStepDistance = getDistance(
 						parsePosition(this.route.legs[0].steps[this.currentStep].start_location),
 						parsePosition(this.route.legs[0].steps[this.currentStep].end_location)
 					);
 					const currentDistance = getDistance(parsePosition(this.route.legs[0].steps[this.currentStep].start_location), position);
+					console.log(currentDistance, currentStepDistance);
 					if (currentDistance > currentStepDistance) this.currentStep++;
 				}
+			},
+		},
+		currentIndex: {
+			handler(value) {
+				this.$emit("path", { from: this.fullRoute[value], to: this.fullRoute[value + 1] });
 			},
 		},
 		currentStep: {
@@ -100,8 +107,8 @@ export default {
 </script>
 
 <template v-if="route">
-	<Polyline :options="{ path: pastRoute, strokeColor: '#333', strokeWeight: 8, strokeOpacity: 0.6 }" />
-	<Polyline :options="{ path: futureRoute, strokeColor: '#0066ff', strokeWeight: 8, strokeOpacity: 0.8 }" />
+	<Polyline v-if="pastRoute.length > 0" :options="{ path: pastRoute, strokeColor: '#333', strokeWeight: 8, strokeOpacity: 0.6 }" />
+	<Polyline v-if="futureRoute.length > 0" :options="{ path: futureRoute, strokeColor: '#0066ff', strokeWeight: 8, strokeOpacity: 0.8 }" />
 	<div v-if="route.legs[0].steps" class="route-info" v-html="route.legs[0].steps[currentStep + 1].instructions"></div>
 </template>
 

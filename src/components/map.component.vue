@@ -1,8 +1,6 @@
 <!-- eslint-disable vue/attribute-hyphenation -->
 <script>
 import { GoogleMap } from "vue3-google-map";
-import Router from "@components/router.component.vue";
-import Car from "@components/car.component.vue";
 import Control from "@components/control.component.vue";
 import Movement from "@components/movement.component.vue";
 
@@ -10,8 +8,6 @@ export default {
 	name: "MapComponent",
 	components: {
 		GoogleMap,
-		Router,
-		Car,
 		Control,
 		Movement,
 	},
@@ -28,7 +24,6 @@ export default {
 				track: undefined,
 				satsVisible: 0,
 			},
-			fixedPosition: undefined,
 			follow: true,
 		};
 	},
@@ -51,9 +46,9 @@ export default {
 		},
 	},
 	methods: {
-		route(from, to) {
+		route(to) {
 			if (to == undefined) return;
-			this.$refs.router.route(from || { lat: this.gps.lat, lng: this.gps.lng }, to);
+			this.$refs.movement.route({ lat: this.gps.lat, lng: this.gps.lng }, to);
 		},
 	},
 };
@@ -65,7 +60,6 @@ export default {
 		:api-key="$store.state.variables.google_api"
 		:zoom="18"
 		:tilt="60"
-		:heading="heading"
 		:disableDefaultUi="true"
 		gestureHandling="cooperative"
 		mapId="9a664a373c810533"
@@ -73,10 +67,8 @@ export default {
 		style="width: 100%; height: calc(100vh - 2rem)"
 	>
 		<template #default="{ ready, api, map }">
-			<Control :ready="ready" :position="gps" :map="map" :follow="follow" @follow="follow = $event" />
-			<Car :ready="ready" :position="fixedPosition" :map="map" />
-			<Router ref="router" :ready="ready" :position="gps" :map="map" :api="api" />
-			<Movement :ready="ready" :position="gps" :map="map" @position="fixedPosition = $event" />
+			<Movement ref="movement" :ready="ready" :api="api" :position="gps" :map="map" :follow="follow" />
+			<Control :ready="ready" :map="map" :position="gps" :follow="follow" @follow="follow = $event" />
 		</template>
 	</GoogleMap>
 </template>
