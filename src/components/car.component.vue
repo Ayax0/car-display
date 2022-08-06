@@ -29,8 +29,8 @@ export default {
 				if (!this.$refs.marker) return;
 				if (!oldValue) return this.$refs.marker.marker.setPosition(value);
 				if (!value && !oldValue) return;
-				const stepAmount = 40;
-				const distance = getDistance(oldValue, value, 0.01);
+				const stepAmount = 80;
+				const distance = getDistance(oldValue, value, 0.001);
 				const step = distance / stepAmount;
 				const bearing = getRhumbLineBearing(oldValue, value);
 				for (let i = 0; i < stepAmount; i++) {

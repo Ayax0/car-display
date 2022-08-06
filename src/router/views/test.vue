@@ -12,7 +12,7 @@ export default {
 	data() {
 		return {
 			gps: undefined,
-			to: "",
+			to: "st niklausengasse 8",
 			keyboard: false,
 			recording: false,
 		};

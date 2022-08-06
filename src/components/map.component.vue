@@ -61,6 +61,7 @@ export default {
 		:zoom="18"
 		:tilt="60"
 		:disableDefaultUi="true"
+		:draggable="false"
 		gestureHandling="cooperative"
 		mapId="9a664a373c810533"
 		language="de"

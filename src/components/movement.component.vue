@@ -2,13 +2,11 @@
 import { computeDestinationPoint, getCenterOfBounds, getDistance, getRhumbLineBearing } from "geolib";
 
 import Router from "@components/router.component.vue";
-import Car from "@components/car.component.vue";
 
 export default {
 	name: "MovementComponent",
 	components: {
 		Router,
-		Car,
 	},
 	props: {
 		ready: { type: Boolean, default: false },
@@ -26,6 +24,17 @@ export default {
 			fixedDirection: undefined,
 			path: undefined,
 		};
+	},
+	computed: {
+		options() {
+			return {
+				icon: {
+					url: window.location.origin + "/car.png",
+					scaledSize: { width: 50, height: 50 },
+					anchor: { x: 25, y: 25 },
+				},
+			};
+		},
 	},
 	watch: {
 		position: {
@@ -51,17 +60,24 @@ export default {
 			if (this.ready && this.payload.length > 0) {
 				const _payload = [];
 				while (this.payload.length > 0) _payload.push(this.payload.shift());
-				const centerPosition = getCenterOfBounds(_payload.map((item) => ({ latitude: item.lat, longitude: item.lng })));
-				const averageDirection =
+				let centerPosition = getCenterOfBounds(_payload.map((item) => ({ latitude: item.lat, longitude: item.lng })));
+				let averageDirection =
 					_payload
 						.filter((item) => item.track != undefined)
 						.map((item) => item.track)
 						.reduce((value, current) => value + current) / _payload.filter((item) => item.track != undefined).length;
 
-				if (this.path) {
-					console.log("path:", this.path);
-					// const distance = getDistance()
-				}
+				// if (this.path) {
+				// 	const startDistance = getDistance(parsePosition(this.path.from), centerPosition, 0.1);
+				// 	const pathDirection = getRhumbLineBearing(parsePosition(this.path.from), parsePosition(this.path.to));
+				// 	const predictedPosition = computeDestinationPoint(parsePosition(this.path.from), startDistance, pathDirection);
+				// 	console.log(
+				// 		getDistance(centerPosition, predictedPosition),
+				// 		getDistanceFromLine(centerPosition, parsePosition(this.path.from), parsePosition(this.path.to), 0.1)
+				// 	);
+				// 	if (getDistanceFromLine(centerPosition, parsePosition(this.path.from), parsePosition(this.path.to), 0.1) < 50)
+				// 		centerPosition = predictedPosition;
+				// }
 
 				if (this.follow)
 					this.move(
@@ -88,9 +104,13 @@ export default {
 			if (!from && !to) return;
 			if (!from) return this.map.panTo(to);
 			if (!fromHeading) return this.map.setHeading(toHeading);
-			const stepAmount = 40;
+			const stepAmount = 30;
 			const distance = getDistance(from, to, 0.01);
-			const headingDistance = toHeading - fromHeading;
+			let headingDistance = toHeading - fromHeading;
+			// if(headingDistance >= 180 || headingDistance <= -180) {
+
+			// }
+
 			const step = distance / stepAmount;
 			const headingStep = headingDistance / stepAmount;
 			const bearing = getRhumbLineBearing(from, to);
@@ -107,7 +127,7 @@ export default {
 </script>
 
 <template>
-	<Car :ready="ready" :position="fixedPosition" :map="map" />
+	<img src="@assets/car.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)" width="50" height="50" />
 	<Router ref="router" :ready="ready" :position="fixedPosition" :map="map" :api="api" @path="path = $event" />
 </template>
 
