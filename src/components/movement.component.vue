@@ -1,19 +1,19 @@
 <script>
 import { computeDestinationPoint, getCenterOfBounds, getDistance, getRhumbLineBearing } from "geolib";
 
-import Router from "@components/router.component.vue";
+import Route from "@components/route.component.vue";
 
 export default {
 	name: "MovementComponent",
 	components: {
-		Router,
+		Route,
 	},
 	props: {
 		ready: { type: Boolean, default: false },
 		api: { type: Object, default: undefined },
 		map: { type: Object, default: undefined },
 		position: { type: Object, default: undefined },
-		follow: { type: Boolean, default: true },
+		color: { type: String, default: undefined },
 	},
 	emits: ["position"],
 	data() {
@@ -26,14 +26,13 @@ export default {
 		};
 	},
 	computed: {
-		options() {
-			return {
-				icon: {
-					url: window.location.origin + "/car.png",
-					scaledSize: { width: 50, height: 50 },
-					anchor: { x: 25, y: 25 },
-				},
-			};
+		currentRoutes: {
+			get() {
+				return this.$store.state.route;
+			},
+			set(value) {
+				this.$store.commit("setRoute", value);
+			},
 		},
 	},
 	watch: {
@@ -49,13 +48,9 @@ export default {
 				this.$emit("position", value);
 			},
 		},
-		follow: {
-			handler(value, previous) {
-				if (!previous && value) this.map.panTo(this.fixedPosition);
-			},
-		},
 	},
 	mounted() {
+		this.map.panTo(this.position);
 		this.interval = setInterval(() => {
 			if (this.ready && this.payload.length > 0) {
 				const _payload = [];
@@ -79,13 +74,7 @@ export default {
 				// 		centerPosition = predictedPosition;
 				// }
 
-				if (this.follow)
-					this.move(
-						this.fixedPosition,
-						this.fixedDirection,
-						{ lat: centerPosition.latitude, lng: centerPosition.longitude },
-						averageDirection
-					);
+				this.move(this.fixedPosition, this.fixedDirection, { lat: centerPosition.latitude, lng: centerPosition.longitude }, averageDirection);
 
 				this.fixedPosition = { lat: centerPosition.latitude, lng: centerPosition.longitude };
 				this.fixedDirection = averageDirection;
@@ -97,7 +86,24 @@ export default {
 	},
 	methods: {
 		route(from, to) {
-			this.$refs.router.route(from, to);
+			const DirectionsService = this.api.DirectionsService;
+			const Status = this.api.DirectionsStatus;
+			const TravelMode = this.api.DirectionsTravelMode;
+			const UnitSystem = this.api.DirectionsUnitSystem;
+			new DirectionsService().route(
+				{
+					origin: from,
+					destination: to,
+					travelMode: TravelMode.DRIVING,
+					unitSystem: UnitSystem.METRIC,
+					region: "CH",
+				},
+				(result, status) => {
+					if (status != Status.OK) return console.warn("routing error");
+					this.currentRoutes = result.routes;
+					console.log(result);
+				}
+			);
 		},
 		async move(from, fromHeading, to, toHeading) {
 			if (!this.map) return;
@@ -127,8 +133,15 @@ export default {
 </script>
 
 <template>
-	<img src="@assets/car.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)" width="50" height="50" />
-	<Router ref="router" :ready="ready" :position="fixedPosition" :map="map" :api="api" @path="path = $event" />
+	<img src="@assets/car2.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)" width="40" height="40" />
+	<template v-if="fixedPosition && currentRoutes">
+		<Route
+			v-for="(currentRoute, index) of currentRoutes"
+			:key="index"
+			:position="fixedPosition"
+			:route="currentRoute"
+			:color="color"
+			@path="path = $event"
+		/>
+	</template>
 </template>
-
-<style lang="scss" scoped></style>

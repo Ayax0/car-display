@@ -1,15 +1,18 @@
 <!-- eslint-disable vue/attribute-hyphenation -->
 <script>
 import { GoogleMap } from "vue3-google-map";
-import Control from "@components/control.component.vue";
 import Movement from "@components/movement.component.vue";
+import Spinner from "@components/spinner.component.vue";
 
 export default {
 	name: "MapComponent",
 	components: {
 		GoogleMap,
-		Control,
 		Movement,
+		Spinner,
+	},
+	props: {
+		color: { type: String, default: "#000" },
 	},
 	data() {
 		return {
@@ -24,7 +27,6 @@ export default {
 				track: undefined,
 				satsVisible: 0,
 			},
-			follow: true,
 		};
 	},
 	sockets: {
@@ -56,6 +58,7 @@ export default {
 
 <template>
 	<GoogleMap
+		v-if="gps.lat && gps.lng"
 		class="map"
 		:api-key="$store.state.variables.google_api"
 		:zoom="18"
@@ -68,14 +71,34 @@ export default {
 		style="width: 100%; height: calc(100vh - 2rem)"
 	>
 		<template #default="{ ready, api, map }">
-			<Movement ref="movement" :ready="ready" :api="api" :position="gps" :map="map" :follow="follow" />
-			<Control :ready="ready" :map="map" :position="gps" :follow="follow" @follow="follow = $event" />
+			<Movement v-if="ready" ref="movement" :ready="ready" :api="api" :position="gps" :map="map" :color="color" />
 		</template>
 	</GoogleMap>
+	<div v-else class="map-empty">
+		<Spinner color="white" style="margin-bottom: 2rem" />
+		<div>GPS-Position wird gesucht</div>
+		<div>{{ gps.satsVisible }} Sateliten</div>
+	</div>
 </template>
 
 <style lang="scss" scoped>
 .map {
 	position: relative;
+}
+
+.map-empty {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: white;
+	font-weight: 100;
+
+	*:last-child {
+		margin-bottom: 6rem;
+		font-size: 14px;
+	}
 }
 </style>

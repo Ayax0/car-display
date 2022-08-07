@@ -127,12 +127,8 @@ export default {
 					colors = colors.sort((a, b) => (a.c < b.c ? -1 : a.c == b.c ? 0 : 1)).reverse();
 					colors_alt = colors_alt.sort((a, b) => (a.c < b.c ? -1 : a.c == b.c ? 0 : 1)).reverse();
 
-					console.log("pallette A:", colors[0], colors[1], colors[2]);
-					console.log("pallette B:", colors_alt[0], colors_alt[1], colors_alt[2]);
-
 					var selection = [];
 
-					console.log("1. selection round");
 					for (const color of colors) {
 						if (selection.length == 0) selection.push(color);
 						if (selection.length == 1) {
@@ -150,7 +146,6 @@ export default {
 						}
 					}
 					if (selection.length == 2) return resolve(selection);
-					console.log("2. selection round");
 					for (const color of colors_alt) {
 						if (selection.length == 0) selection.push(color);
 						if (selection.length == 1) {
@@ -168,13 +163,11 @@ export default {
 						}
 					}
 					if (selection.length == 2) return resolve(selection);
-					console.log("3. selection round");
 					for (const color of colors) {
 						if (selection.length == 0) selection.push(color);
 						if (selection.length == 1) selection.push(color);
 					}
 					if (selection.length == 2) return resolve(selection);
-					console.log("4. selection round");
 					for (const color of colors_alt) {
 						if (selection.length == 0) selection.push(color);
 						if (selection.length == 1) selection.push(color);

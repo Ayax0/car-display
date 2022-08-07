@@ -1,19 +1,11 @@
 <script>
-import Map from "@components/map.component.vue";
-import Keyboard from "@components/keyboard.component.vue";
 import axios from "axios";
 
 export default {
 	name: "TestView",
-	components: {
-		Map,
-		Keyboard,
-	},
 	data() {
 		return {
 			gps: undefined,
-			to: "st niklausengasse 8",
-			keyboard: false,
 			recording: false,
 		};
 	},
@@ -79,14 +71,6 @@ export default {
 
 <template>
 	<div class="test-main">
-		<template v-if="gps">
-			<Map ref="map" />
-			<div class="map-control">
-				<input v-model="to" type="text" placeholder="To" @focus="keyboard = true" />
-				<button @click="$refs.map.route(to)">Submit</button>
-				<Keyboard v-model:value="keyboard" @key="to += $event" @delete="to = to.slice(0, -1)" @submit="$refs.map.route(to)" />
-			</div>
-		</template>
 		<div class="map-control">
 			<div>Recording: {{ recording }}</div>
 			<button @click="startRecording">Record Start</button>
@@ -178,12 +162,6 @@ export default {
 	justify-content: center;
 	align-items: center;
 	border-radius: 50%;
-}
-
-input,
-button {
-	font-size: 16px;
-	padding: 0.5rem;
 }
 
 .map-control {

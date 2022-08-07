@@ -15,21 +15,17 @@ export default {
 </script>
 
 <template>
-  <div class="button">
-    <Icon
-      :icon="icon"
-      height="3rem"
-      :color="color"
-    />
-  </div>
+	<div class="button">
+		<Icon :icon="icon" height="2.5rem" :color="color" />
+	</div>
 </template>
 
 <style lang="scss" scoped>
 .button {
+	flex: 1;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 8rem;
 	height: 8rem;
 }
 </style>

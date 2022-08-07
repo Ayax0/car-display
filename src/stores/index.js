@@ -15,6 +15,10 @@ export default createStore({
 			secondary: "rgb(10,10,10)",
 			search_items: undefined,
 			search_query: "",
+			navigation: "",
+			route: undefined,
+			currentIndex: 0,
+			currentStep: 0,
 		};
 	},
 	getters: {
@@ -57,6 +61,18 @@ export default createStore({
 		},
 		setVariables(state, variables) {
 			state.variables = variables;
+		},
+		setNavigation(state, value) {
+			state.navigation = value;
+		},
+		setRoute(state, value) {
+			state.route = value;
+		},
+		setCurrentIndex(state, value) {
+			state.currentIndex = value;
+		},
+		setCurrentStep(state, value) {
+			state.currentStep = value;
 		},
 	},
 	actions: {
