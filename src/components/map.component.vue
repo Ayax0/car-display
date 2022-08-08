@@ -11,9 +11,6 @@ export default {
 		Movement,
 		Spinner,
 	},
-	props: {
-		color: { type: String, default: "#000" },
-	},
 	data() {
 		return {
 			gps: {
@@ -31,14 +28,14 @@ export default {
 	},
 	sockets: {
 		gps(data) {
-			if (data.lat) this.gps.lat = data.lat;
-			if (data.lon) this.gps.lng = data.lon;
-			if (data.hdop) this.gps.hdop = data.hdop;
-			if (data.pdop) this.gps.pdop = data.pdop;
-			if (data.vdop) this.gps.vdop = data.vdop;
-			if (data.alt) this.gps.alt = data.alt;
-			if (data.speed) this.gps.speed = data.speed;
-			if (data.track) {
+			if (data.lat != undefined) this.gps.lat = data.lat;
+			if (data.lon != undefined) this.gps.lng = data.lon;
+			if (data.hdop != undefined) this.gps.hdop = data.hdop;
+			if (data.pdop != undefined) this.gps.pdop = data.pdop;
+			if (data.vdop != undefined) this.gps.vdop = data.vdop;
+			if (data.alt != undefined) this.gps.alt = data.alt;
+			if (data.speed != undefined) this.gps.speed = data.speed;
+			if (data.track != undefined) {
 				const _track = data.track - 180;
 				if (_track == 0) this.gps.track = 180;
 				if (_track < 0) this.gps.track = _track + 180;
@@ -71,7 +68,7 @@ export default {
 		style="width: 100%; height: calc(100vh - 2rem)"
 	>
 		<template #default="{ ready, api, map }">
-			<Movement v-if="ready" ref="movement" :ready="ready" :api="api" :position="gps" :map="map" :color="color" />
+			<Movement v-if="ready" ref="movement" :ready="ready" :api="api" :position="gps" :map="map" />
 		</template>
 	</GoogleMap>
 	<div v-else class="map-empty">

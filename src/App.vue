@@ -20,9 +20,13 @@ export default {
 </script>
 
 <template>
-  <div id="app">
-    <router-view />
-  </div>
+	<div id="app">
+		<router-view v-slot="{ Component }">
+			<keep-alive>
+				<component :is="Component" :key="$route.name" />
+			</keep-alive>
+		</router-view>
+	</div>
 </template>
 
 <style lang="scss">
@@ -42,8 +46,9 @@ body {
 	margin: 0;
 }
 
-html, body {
-  overscroll-behavior-x: none;
+html,
+body {
+	overscroll-behavior-x: none;
 }
 
 * {

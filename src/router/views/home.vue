@@ -27,6 +27,12 @@ export default {
 			last_volume_change: -1,
 			progress: 0,
 			navigate_keyboard: false,
+			shortcuts: [
+				{ name: "Zuhause", lat: 47.033491171097495, lng: 8.272311916226993 },
+				{ name: "D.Fallegger", lat: 47.037717244207876, lng: 8.29025976240901 },
+				{ name: "Nextlvlup", lat: 47.052849674126094, lng: 8.284547315166083 },
+				{ name: "Simaprint", lat: 47.08932277251682, lng: 8.345200586856365 },
+			],
 		};
 	},
 	computed: {
@@ -44,6 +50,14 @@ export default {
 			},
 			set(value) {
 				this.$store.commit("setNavigation", value);
+			},
+		},
+		currentRoutes: {
+			get() {
+				return this.$store.state.route;
+			},
+			set(value) {
+				this.$store.commit("setRoute", value);
 			},
 		},
 	},
@@ -143,6 +157,11 @@ export default {
 			if (this.navigation == undefined || this.navigation.length == 0) return;
 			this.$refs.map.route(this.navigation);
 		},
+		routeTo(position) {
+			this.navigation = position;
+			this.navigate_keyboard = false;
+			this.route();
+		},
 	},
 };
 </script>
@@ -181,20 +200,30 @@ export default {
 			</div>
 		</div>
 		<div class="volume" :class="{ expand: volume_dialog }">
-			<div class="action-wrapper">
-				<div class="action" @click="volume_dialog = !volume_dialog">
-					<Icon icon="mdi:volume" height="2rem" color="white" />
-				</div>
+			<div class="action" @click="volume_dialog = !volume_dialog">
+				<Icon icon="mdi:volume" height="2rem" color="white" />
 			</div>
 			<VueSlider v-model="volume" direction="btt" tooltip="none" class="slider" />
 		</div>
-		<div class="search" :class="{ expand: navigate_keyboard }">
-			<div class="action-wrapper">
-				<div class="action" @click="navigate_keyboard = !navigate_keyboard">
-					<Icon icon="mdi:navigation" height="2rem" color="white" />
+		<div class="search-wrapper" :class="{ expand: navigate_keyboard }">
+			<div class="search">
+				<div class="action" @click="currentRoutes ? (currentRoutes = undefined) : (navigate_keyboard = !navigate_keyboard)">
+					<Icon :icon="currentRoutes ? 'mdi:close' : 'mdi:navigation'" height="2rem" color="white" />
+				</div>
+				<div class="text">{{ navigation }}</div>
+				<div class="clear" @click="navigation = ''"><Icon icon="mdi:close" height="1.5rem" color="white" /></div>
+			</div>
+			<div class="shortcuts">
+				<div
+					v-for="shortcut of shortcuts"
+					:key="shortcut.name"
+					v-ripple
+					class="shortcut"
+					@click="routeTo({ lat: shortcut.lat, lng: shortcut.lng })"
+				>
+					{{ shortcut.name }}
 				</div>
 			</div>
-			<div class="text">{{ navigation }}</div>
 		</div>
 		<Keyboard v-model:value="navigate_keyboard" @key="navigation += $event" @delete="navigation = navigation.slice(0, -1)" @submit="route" />
 		<SwipeComponent
@@ -226,7 +255,8 @@ export default {
 		left: 0;
 		width: 100%;
 		transition: background-color 1s;
-		background-color: var(--color-primary);
+		// background-color: var(--color-primary);
+		background-color: $border;
 
 		.control {
 			background: linear-gradient(-45deg, rgba(20, 20, 20, 0.4) 30%, rgba(20, 20, 20, 0.6) 100%);
@@ -260,7 +290,8 @@ export default {
 				img {
 					width: 6rem;
 					height: 6rem;
-					padding: 1rem;
+					margin: 1rem;
+					box-shadow: $shadow;
 				}
 
 				.info {
@@ -309,10 +340,10 @@ export default {
 
 	.volume {
 		position: absolute;
-		bottom: 10rem;
-		left: 2rem;
+		bottom: calc(9rem + 10px);
+		left: 1rem;
 		background: linear-gradient(-45deg, rgba(20, 20, 20, 0.6) 30%, rgba(20, 20, 20, 0.7) 100%);
-		border: 2px solid var(--color-primary);
+		border: 2px solid $border;
 		box-shadow: $shadow;
 		width: 4rem;
 		height: 4rem;
@@ -325,20 +356,14 @@ export default {
 		overflow: hidden;
 		z-index: 1;
 
-		.action-wrapper {
-			background-color: var(--color-primary);
-			transition: background-color 0.5s ease-in-out;
-
-			.action {
-				width: 4rem;
-				height: 4rem;
-				min-height: 4rem;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				background: linear-gradient(-45deg, rgba(20, 20, 20, 0.4) 30%, rgba(20, 20, 20, 0.6) 100%);
-				backdrop-filter: brightness(90%) saturate(120%) contrast(120%);
-			}
+		.action {
+			width: 4rem;
+			height: 4rem;
+			min-height: 4rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background: $background;
 		}
 
 		.slider {
@@ -348,27 +373,28 @@ export default {
 	}
 
 	.volume.expand {
-		height: calc(100% - 12rem);
+		height: calc(100% - 11rem);
 	}
 
-	.search {
+	.search-wrapper {
 		position: absolute;
-		bottom: 10rem;
-		left: 8rem;
+		bottom: calc(9rem + 10px);
+		left: 7rem;
 		width: 4rem;
-		height: 4rem;
-		border-radius: 2rem;
-		background: linear-gradient(-45deg, rgba(20, 20, 20, 0.6) 30%, rgba(20, 20, 20, 0.7) 100%);
-		border: 2px solid var(--color-primary);
-		overflow: hidden;
-		display: flex;
-		align-items: center;
-		transition: width 0.2s ease, bottom 0.2s ease-in-out, left 0.2s ease-in-out;
 		z-index: 1;
+		transition: width 0.2s ease, bottom 0.2s ease-in-out, left 0.2s ease-in-out;
 
-		.action-wrapper {
-			background-color: var(--color-primary);
-			transition: background-color 0.5s ease-in-out;
+		.search {
+			height: 4rem;
+			border-radius: 2rem;
+			background: linear-gradient(-45deg, rgba(20, 20, 20, 0.6) 30%, rgba(20, 20, 20, 0.7) 100%);
+			border: 2px solid $border;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			position: relative;
+			box-shadow: $shadow;
+
 			.action {
 				width: 4rem;
 				min-width: 4rem;
@@ -376,25 +402,63 @@ export default {
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				background: linear-gradient(-45deg, rgba(20, 20, 20, 0.4) 30%, rgba(20, 20, 20, 0.6) 100%);
-				backdrop-filter: brightness(90%) saturate(120%) contrast(120%);
+				background: $background;
+			}
+
+			.text {
+				width: 100%;
+				background: transparent;
+				color: white;
+				font-size: 20px;
+				margin: 0 1rem;
+				overflow: hidden;
+			}
+
+			.clear {
+				display: none;
+				position: absolute;
+				right: 1rem;
+				top: 1.25rem;
 			}
 		}
 
-		.text {
+		.shortcuts {
 			width: 100%;
-			background: transparent;
-			color: white;
-			font-size: 20px;
-			margin: 0 1rem;
-			overflow: hidden;
+			display: none;
+			height: 2rem;
+			width: 100%;
+			padding: 2rem 1rem;
+			gap: 1rem;
+			overflow-x: auto;
+
+			.shortcut {
+				background: $primary;
+				box-shadow: $shadow;
+				border-radius: 1rem;
+				color: white;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 2rem;
+				padding: 0 1rem;
+			}
 		}
 	}
 
-	.search.expand {
-		width: calc(100% - 4rem);
-		bottom: calc(100% - 6rem);
+	.search-wrapper.expand {
 		left: 2rem;
+		bottom: calc(100% - 12rem);
+		width: calc(100% - 4rem);
+
+		.search {
+			.clear {
+				display: block;
+			}
+		}
+
+		.shortcuts {
+			display: flex;
+		}
 	}
 }
 

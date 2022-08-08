@@ -13,7 +13,6 @@ export default {
 		api: { type: Object, default: undefined },
 		map: { type: Object, default: undefined },
 		position: { type: Object, default: undefined },
-		color: { type: String, default: undefined },
 	},
 	emits: ["position"],
 	data() {
@@ -127,6 +126,8 @@ export default {
 				await new Promise((r) => setTimeout(r, 2000 / stepAmount));
 			}
 			this.map.panTo(to), this.map.setHeading(toHeading);
+			if (this.position.speed > 70) this.map.setZoom(16);
+			else this.map.setZoom(18);
 		},
 	},
 };
@@ -139,9 +140,37 @@ export default {
 			v-for="(currentRoute, index) of currentRoutes"
 			:key="index"
 			:position="fixedPosition"
+			:heading="fixedDirection"
 			:route="currentRoute"
-			:color="color"
 			@path="path = $event"
 		/>
 	</template>
+	<div class="speed">
+		{{ Math.round(position?.speed || 0) }}
+		<span>km/h</span>
+	</div>
 </template>
+
+<style lang="scss" scoped>
+.speed {
+	position: absolute;
+	bottom: calc(7rem + 10px);
+	right: 1rem;
+	width: 4rem;
+	height: 4rem;
+	border-radius: 2.5rem;
+	background: $background;
+	border: 2px solid $border;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: white;
+	font-size: 20px;
+	box-shadow: $shadow;
+
+	span {
+		font-size: 12px;
+	}
+}
+</style>

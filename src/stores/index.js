@@ -137,17 +137,19 @@ export default createStore({
 			};
 		},
 		setStatus({ commit, state }, status) {
-			const current_playing = status.track_window.current_track;
-			const current_image = current_playing.album.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0];
+			const current_playing = status?.track_window?.current_track;
+			if (current_playing) {
+				const current_image = current_playing.album.images.sort((a, b) => (a.width > b.width ? -1 : 1))[0];
 
-			if (!state.current_playing || current_playing.id != state.current_playing.id) {
-				getImageColor(current_image).then((res) => {
-					commit("setPrimary", `rgb(${res[0].r},${res[0].g},${res[0].b})`);
-					commit("setSecondary", `rgb(${res[1].r},${res[1].g},${res[1].b})`);
-				});
+				if (!state.current_playing || current_playing.id != state.current_playing.id) {
+					getImageColor(current_image).then((res) => {
+						commit("setPrimary", `rgb(${res[0].r},${res[0].g},${res[0].b})`);
+						commit("setSecondary", `rgb(${res[1].r},${res[1].g},${res[1].b})`);
+					});
+				}
+
+				commit("setCurrentPlaying", current_playing);
 			}
-
-			commit("setCurrentPlaying", current_playing);
 			commit("setStatus", status);
 		},
 		search({ commit, state }) {

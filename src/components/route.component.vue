@@ -1,5 +1,5 @@
 <script>
-import { Polyline } from "vue3-google-map";
+import { Polyline, CustomMarker } from "vue3-google-map";
 import { getDistance, getDistanceFromLine } from "geolib";
 
 function parsePosition(position) {
@@ -10,11 +10,12 @@ export default {
 	name: "RouteComponent",
 	components: {
 		Polyline,
+		CustomMarker,
 	},
 	props: {
 		position: { type: Object, default: undefined },
+		heading: { type: Number, default: 0 },
 		route: { type: Object, default: undefined },
-		color: { type: String, default: "#0066ff" },
 	},
 	emits: ["path"],
 	computed: {
@@ -29,9 +30,17 @@ export default {
 			if (!this.route?.overview_path) return [];
 			return this.fullRoute.slice(this.currentIndex);
 		},
+		steps() {
+			return this.route?.legs[0]?.steps || [];
+		},
 		currentStepInstructions() {
-			if (this.currentStep + 1 == this.route?.legs[0]?.steps.length) return "Ziel erreicht";
-			return this.route?.legs[0]?.steps[this.currentStep + 1]?.instructions;
+			if (this.currentStep + 1 == this.steps.length) return "Ziel erreicht";
+			return this.steps[this.currentStep + 1]?.instructions?.replaceAll("<b>", '<b style="font-size: 20px">');
+		},
+		currentStepIcon() {
+			if (this.currentStep + 1 == this.steps.length) return "sports_score";
+			const step = this.steps[this.currentStep + 1];
+			return this.convertManeuver(step.maneuver);
 		},
 		currentIndex: {
 			get() {
@@ -84,7 +93,7 @@ export default {
 				this.currentIndex == 0 ? Number.MAX_VALUE : getDistance(this.position, parsePosition(this.fullRoute[this.currentIndex - 1]));
 			const currentWaypoint = getDistance(this.position, parsePosition(this.fullRoute[this.currentIndex]));
 			const nextWaypoint =
-				this.fullRoute.length <= this.currentIndex
+				this.fullRoute.length <= this.currentIndex + 1
 					? Number.MAX_VALUE
 					: getDistance(this.position, parsePosition(this.fullRoute[this.currentIndex + 1]));
 
@@ -123,35 +132,49 @@ export default {
 				this.updateStep();
 			}
 		},
+		convertManeuver(maneuver) {
+			if (maneuver == "") return "straight";
+			if (maneuver == "ferry") return "directions_boat";
+			if (maneuver == "roundabout-right") return "roundabout_left";
+			return maneuver.replaceAll("-", "_");
+		},
 	},
 };
 </script>
 
 <template>
 	<Polyline v-if="pastRoute.length > 0" :options="{ path: pastRoute, strokeColor: '#333', strokeWeight: 8, strokeOpacity: 0.6 }" />
-	<Polyline v-if="futureRoute.length > 0" :options="{ path: futureRoute, strokeColor: color, strokeWeight: 8, strokeOpacity: 0.8 }" />
-	<div v-if="currentStepInstructions" class="info-wrapper" :style="{ background: color, border: '2px solid ' + color }">
-		<div class="route-info" v-html="currentStepInstructions"></div>
+	<Polyline v-if="futureRoute.length > 0" :options="{ path: futureRoute, strokeColor: '#940700', strokeWeight: 8, strokeOpacity: 0.8 }" />
+	<CustomMarker v-for="(step, index) of steps" :key="index" :options="{ position: step.start_location }">
+		<span class="material-icons" style="color: white">{{ convertManeuver(step.maneuver) }}</span>
+	</CustomMarker>
+	<div v-if="currentStepInstructions" class="route-info">
+		<span class="material-icons">{{ currentStepIcon }}</span>
+		<div class="info" v-html="currentStepInstructions" />
 	</div>
 </template>
 
 <style lang="scss" scoped>
-.info-wrapper {
+.route-info {
 	position: absolute;
 	top: 1rem;
 	right: 1rem;
 	width: 30%;
-	box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+	color: white;
+	padding: 1rem;
+	display: flex;
+	gap: 1rem;
+	background: linear-gradient(-45deg, rgba(40, 40, 40, 0.7) 30%, rgba(40, 40, 40, 0.9) 100%);
 	border-radius: 1rem;
-	transition: background-color 0.5s ease-in-out;
+	box-shadow: $shadow;
 
-	.route-info {
-		color: white;
-		padding: 1rem;
-		font-size: 24px;
-		border-radius: 1rem;
-		background: linear-gradient(-45deg, rgba(20, 20, 20, 0.4) 30%, rgba(20, 20, 20, 0.6) 100%);
-		backdrop-filter: brightness(90%) saturate(120%) contrast(120%);
+	span {
+		font-size: 40px;
+	}
+
+	.info {
+		font-size: 16px;
+		font-weight: 100;
 	}
 }
 </style>
