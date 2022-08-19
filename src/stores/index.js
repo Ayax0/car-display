@@ -19,6 +19,7 @@ export default createStore({
 			route: undefined,
 			currentIndex: 0,
 			currentStep: 0,
+			tts: undefined,
 		};
 	},
 	getters: {
@@ -73,6 +74,9 @@ export default createStore({
 		},
 		setCurrentStep(state, value) {
 			state.currentStep = value;
+		},
+		setTTS(state, tts) {
+			state.tts = tts;
 		},
 	},
 	actions: {

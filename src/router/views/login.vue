@@ -22,6 +22,12 @@ export default {
 			let spotifyScript = document.createElement("script");
 			spotifyScript.setAttribute("src", "https://sdk.scdn.co/spotify-player.js");
 			document.body.appendChild(spotifyScript);
+
+			let ttsScript = document.createElement("script");
+			ttsScript.setAttribute("src", "https://slang.slowsoft.ch/static/scripts/slowsoft_tts.js");
+			document.body.appendChild(ttsScript);
+
+			ttsScript.onload = () => this.$store.commit("setTTS", new window.TTS());
 		},
 	},
 };

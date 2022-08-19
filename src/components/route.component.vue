@@ -35,7 +35,7 @@ export default {
 		},
 		currentStepInstructions() {
 			if (this.currentStep + 1 == this.steps.length) return "Ziel erreicht";
-			return this.steps[this.currentStep + 1]?.instructions?.replaceAll("<b>", '<b style="font-size: 20px">');
+			return this.steps[this.currentStep + 1]?.instructions?.replaceAll("<b>", '<b style="font-size: 24px">');
 		},
 		currentStepIcon() {
 			if (this.currentStep + 1 == this.steps.length) return "sports_score";
@@ -77,6 +77,13 @@ export default {
 			immediate: true,
 			handler(value) {
 				console.log("CurrentStep:", value);
+			},
+		},
+		currentStepInstructions: {
+			handler(value) {
+				// eslint-disable-next-line no-undef
+				console.log(this.$store.state.tts);
+				this.$store.state.tts.toAudio(value, "gsw-CHE-gr");
 			},
 		},
 		route: {
@@ -173,8 +180,10 @@ export default {
 	}
 
 	.info {
-		font-size: 16px;
+		font-size: 18px;
 		font-weight: 100;
+		word-wrap: break-word;
+		overflow: hidden;
 	}
 }
 </style>
