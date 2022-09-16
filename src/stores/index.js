@@ -119,7 +119,7 @@ export default createStore({
 				const player = new window.Spotify.Player({
 					name: "Opel Corsa C14",
 					getOAuthToken: (cb) => cb(state.account.api.access_token),
-					volume: 0.1,
+					volume: 1,
 				});
 
 				player.addListener("ready", (device) => {

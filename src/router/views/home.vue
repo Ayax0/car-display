@@ -9,6 +9,8 @@ import Keyboard from "@components/keyboard.component.vue";
 
 import ColorMixin from "@mixins/image.mixin";
 
+import axios from "axios";
+
 export default {
 	name: "HomeView",
 	components: {
@@ -83,6 +85,8 @@ export default {
 				this.progress = ((100 / this.status.duration) * currentPos) / 100;
 			}
 		}, 10);
+
+		axios.get(process.env.VUE_APP_SERVER + "/volume").then((res) => (this.volume = res.data.volume));
 	},
 	methods: {
 		...mapMutations({
@@ -113,7 +117,7 @@ export default {
 		updateVolume() {
 			if (Date.now() - this.last_volume_change > 1000) {
 				this.last_volume_change = Date.now();
-				this.account.api.put("/me/player/volume?volume_percent=" + this.volume).catch((err) => console.log(err.response));
+				axios.post(process.env.VUE_APP_SERVER + "/volume", { volume: this.volume }).catch((err) => console.log(err.response));
 			} else setTimeout(() => this.updateVolume(), 1020);
 		},
 		increaseVolume() {
