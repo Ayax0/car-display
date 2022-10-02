@@ -89,6 +89,7 @@ export default {
 		route: {
 			immediate: true,
 			handler() {
+				console.log("new route:", this.route);
 				this.currentIndex = 0;
 				this.currentStep = 0;
 			},

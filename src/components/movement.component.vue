@@ -16,8 +16,6 @@ export default {
 	data() {
 		return {
 			interval: undefined,
-			fixedPosition: undefined,
-			fixedDirection: undefined,
 			path: undefined,
 		};
 	},
@@ -36,12 +34,6 @@ export default {
 			deep: true,
 			handler(value) {
 				this.move(value);
-			},
-		},
-		fixedPosition: {
-			deep: true,
-			handler(value) {
-				this.$emit("position", value);
 			},
 		},
 	},
@@ -86,12 +78,12 @@ export default {
 
 <template>
 	<img src="@assets/car2.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)" width="40" height="40" />
-	<template v-if="fixedPosition && currentRoutes">
+	<template v-if="position && currentRoutes">
 		<Route
 			v-for="(currentRoute, index) of currentRoutes"
 			:key="index"
-			:position="fixedPosition"
-			:heading="fixedDirection"
+			:position="position"
+			:heading="position.track"
 			:route="currentRoute"
 			@path="path = $event"
 		/>
